@@ -38,7 +38,7 @@ func init() {
 func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 
 	fs := data.FS
-	fh, err := fs.Open("sfomuseum.json")
+	fh, err := fs.Open("gates.json")
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load data, %v", err)

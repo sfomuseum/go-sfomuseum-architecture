@@ -38,7 +38,7 @@ func init() {
 func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 
 	fs := data.FS
-	fh, err := fs.Open("sfomuseum.json")
+	fh, err := fs.Open("galleries.json")
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load data, %v", err)
@@ -165,11 +165,16 @@ func appendData(ctx context.Context, table *sync.Map, data *Gallery) error {
 	pointer := fmt.Sprintf("pointer:%d", idx)
 	table.Store(pointer, data)
 
-	str_wofid := strconv.FormatInt(data.WOFID, 10)
+	str_wofid := strconv.FormatInt(data.WhosOnFirstId, 10)
+	str_sfomid := strconv.FormatInt(data.SFOMuseumId, 10)
 
 	possible_codes := []string{
-		data.Name,
 		str_wofid,
+		str_sfomid,
+	}
+
+	if data.MapId != "" {
+		possible_codes = append(possible_codes, data.MapId)
 	}
 
 	for _, code := range possible_codes {

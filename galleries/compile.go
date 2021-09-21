@@ -3,8 +3,7 @@ package galleries
 import (
 	"context"
 	"fmt"
-	"github.com/sfomuseum/go-sfomuseum-geojson/feature"
-	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
+	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -45,18 +44,34 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 			return nil
 		}
 
-		f, err := feature.LoadFeatureFromReader(fh)
+		body, err := io.ReadAll(fh)
 
 		if err != nil {
 			return fmt.Errorf("Failed load feature from %s, %w", path, err)
 		}
 
-		wof_id := whosonfirst.Id(f)
-		name := whosonfirst.Name(f)
+		name_rsp := gjson.GetBytes(body, "properties.wof:name")
+		wofid_rsp := gjson.GetBytes(body, "properties.wof:id")
+		sfomid_rsp := gjson.GetBytes(body, "properties.sfomuseum:gallery_id")
+		mapid_rsp := gjson.GetBytes(body, "properties.sfomuseum:map_id")
+
+		if !name_rsp.Exists() {
+			return fmt.Errorf("Missing wof:name property (%s)", path)
+		}
+
+		if !wofid_rsp.Exists() {
+			return fmt.Errorf("Missing wof:id property (%s)", path)
+		}
+
+		if !sfomid_rsp.Exists() {
+			return fmt.Errorf("Missing sfomuseum:gallery_id property (%s)", path)
+		}
 
 		a := Gallery{
-			WOFID: wof_id,
-			Name:  name,
+			WhosOnFirstId: wofid_rsp.Int(),
+			SFOMuseumId:   sfomid_rsp.Int(),
+			MapId:         mapid_rsp.String(),
+			Name:          name_rsp.String(),
 		}
 
 		mu.Lock()
