@@ -21,9 +21,9 @@ var lookup_idx int64
 var lookup_init sync.Once
 var lookup_init_err error
 
-type SFOMuseumLookupFunc func(context.Context)
+type GalleriesLookupFunc func(context.Context)
 
-type SFOMuseumLookup struct {
+type GalleriesLookup struct {
 	architecture.Lookup
 }
 
@@ -48,10 +48,10 @@ func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 	return NewLookupWithLookupFunc(ctx, lookup_func)
 }
 
-// NewLookup will return an `SFOMuseumLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `r`.
-// `r` will be closed when the `SFOMuseumLookupFunc` function instance is invoked.
+// NewLookup will return an `GalleriesLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `r`.
+// `r` will be closed when the `GalleriesLookupFunc` function instance is invoked.
 // It is assumed that the data in `r` will be formatted in the same way as the procompiled (embedded) data stored in `data/sfomuseum.json`.
-func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) SFOMuseumLookupFunc {
+func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) GalleriesLookupFunc {
 
 	lookup_func := func(ctx context.Context) {
 
@@ -88,7 +88,7 @@ func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) SFOMuseumLook
 }
 
 // NewLookupWithLookupFunc will return an `architecture.Lookup` instance derived by data compiled using `lookup_func`.
-func NewLookupWithLookupFunc(ctx context.Context, lookup_func SFOMuseumLookupFunc) (architecture.Lookup, error) {
+func NewLookupWithLookupFunc(ctx context.Context, lookup_func GalleriesLookupFunc) (architecture.Lookup, error) {
 
 	fn := func() {
 		lookup_func(ctx)
@@ -100,7 +100,7 @@ func NewLookupWithLookupFunc(ctx context.Context, lookup_func SFOMuseumLookupFun
 		return nil, lookup_init_err
 	}
 
-	l := SFOMuseumLookup{}
+	l := GalleriesLookup{}
 	return &l, nil
 }
 
@@ -126,7 +126,7 @@ func NewLookupFromIterator(ctx context.Context, iterator_uri string, iterator_so
 	return NewLookupWithLookupFunc(ctx, lookup_func)
 }
 
-func (l *SFOMuseumLookup) Find(ctx context.Context, code string) ([]interface{}, error) {
+func (l *GalleriesLookup) Find(ctx context.Context, code string) ([]interface{}, error) {
 
 	pointers, ok := lookup_table.Load(code)
 
@@ -154,7 +154,7 @@ func (l *SFOMuseumLookup) Find(ctx context.Context, code string) ([]interface{},
 	return galleries_list, nil
 }
 
-func (l *SFOMuseumLookup) Append(ctx context.Context, data interface{}) error {
+func (l *GalleriesLookup) Append(ctx context.Context, data interface{}) error {
 	return appendData(ctx, lookup_table, data.(*Gallery))
 }
 
