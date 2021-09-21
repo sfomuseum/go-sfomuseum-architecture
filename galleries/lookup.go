@@ -1,4 +1,4 @@
-package gates
+package galleries
 
 import (
 	"bytes"
@@ -29,12 +29,12 @@ type SFOMuseumLookup struct {
 
 func init() {
 	ctx := context.Background()
-	architecture.RegisterLookup(ctx, "gates", NewLookup)
+	architecture.RegisterLookup(ctx, "galleries", NewLookup)
 
 	lookup_idx = int64(0)
 }
 
-// NewLookup will return an `architecture.Lookup` instance derived from precompiled (embedded) data in `data/gates.json`
+// NewLookup will return an `architecture.Lookup` instance derived from precompiled (embedded) data in `data/galleries.json`
 func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 
 	fs := data.FS
@@ -57,10 +57,10 @@ func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) SFOMuseumLook
 
 		defer r.Close()
 
-		var gates_list []*Gate
+		var galleries_list []*Gallery
 
 		dec := json.NewDecoder(r)
-		err := dec.Decode(&gates_list)
+		err := dec.Decode(&galleries_list)
 
 		if err != nil {
 			lookup_init_err = err
@@ -69,7 +69,7 @@ func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) SFOMuseumLook
 
 		table := new(sync.Map)
 
-		for _, data := range gates_list {
+		for _, data := range galleries_list {
 
 			select {
 			case <-ctx.Done():
@@ -106,17 +106,17 @@ func NewLookupWithLookupFunc(ctx context.Context, lookup_func SFOMuseumLookupFun
 
 func NewLookupFromIterator(ctx context.Context, iterator_uri string, iterator_sources ...string) (architecture.Lookup, error) {
 
-	gates_data, err := CompileGatesData(ctx, iterator_uri, iterator_sources...)
+	galleries_data, err := CompileGalleriesData(ctx, iterator_uri, iterator_sources...)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to compile gates data, %w", err)
+		return nil, fmt.Errorf("Failed to compile galleries data, %w", err)
 	}
 
-	// necessary until there is a NewLookupFuncWithGates method
-	enc_data, err := json.Marshal(gates_data)
+	// necessary until there is a NewLookupFuncWithGalleries method
+	enc_data, err := json.Marshal(galleries_data)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal gates data, %w", err)
+		return nil, fmt.Errorf("Failed to marshal galleries data, %w", err)
 	}
 
 	r := bytes.NewReader(enc_data)
@@ -134,7 +134,7 @@ func (l *SFOMuseumLookup) Find(ctx context.Context, code string) ([]interface{},
 		return nil, fmt.Errorf("Code '%s' not found", code)
 	}
 
-	gates_list := make([]interface{}, 0)
+	galleries_list := make([]interface{}, 0)
 
 	for _, p := range pointers.([]string) {
 
@@ -148,17 +148,17 @@ func (l *SFOMuseumLookup) Find(ctx context.Context, code string) ([]interface{},
 			return nil, fmt.Errorf("Invalid pointer '%s'", p)
 		}
 
-		gates_list = append(gates_list, row.(*Gate))
+		galleries_list = append(galleries_list, row.(*Gallery))
 	}
 
-	return gates_list, nil
+	return galleries_list, nil
 }
 
 func (l *SFOMuseumLookup) Append(ctx context.Context, data interface{}) error {
-	return appendData(ctx, lookup_table, data.(*Gate))
+	return appendData(ctx, lookup_table, data.(*Gallery))
 }
 
-func appendData(ctx context.Context, table *sync.Map, data *Gate) error {
+func appendData(ctx context.Context, table *sync.Map, data *Gallery) error {
 
 	idx := atomic.AddInt64(&lookup_idx, 1)
 
