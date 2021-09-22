@@ -53,7 +53,6 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 		name_rsp := gjson.GetBytes(body, "properties.wof:name")
 		wofid_rsp := gjson.GetBytes(body, "properties.wof:id")
 		sfomid_rsp := gjson.GetBytes(body, "properties.sfomuseum:gallery_id")
-		mapid_rsp := gjson.GetBytes(body, "properties.sfomuseum:map_id")
 
 		if !name_rsp.Exists() {
 			return fmt.Errorf("Missing wof:name property (%s)", path)
@@ -67,11 +66,17 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 			return fmt.Errorf("Missing sfomuseum:gallery_id property (%s)", path)
 		}
 
+		mapid_rsp := gjson.GetBytes(body, "properties.sfomuseum:map_id")
+		inception_rsp := gjson.GetBytes(body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
+
 		a := Gallery{
 			WhosOnFirstId: wofid_rsp.Int(),
 			SFOMuseumId:   sfomid_rsp.Int(),
 			MapId:         mapid_rsp.String(),
 			Name:          name_rsp.String(),
+			Inception:     inception_rsp.String(),
+			Cessation:     cessation_rsp.String(),
 		}
 
 		mu.Lock()
