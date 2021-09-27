@@ -4,7 +4,7 @@ package gates
 // type Gate is a struct representing a passenger gate at SFO.
 type Gate struct {
 	// The Who's On First ID associated with this gate.
-	WOFID int64 `json:"wof:id"`
+	WhosOnFirstId int64 `json:"wof:id"`
 	// The name of this gate.
 	Name string `json:"wof:name"`
 }

@@ -165,7 +165,7 @@ func appendData(ctx context.Context, table *sync.Map, data *Gate) error {
 	pointer := fmt.Sprintf("pointer:%d", idx)
 	table.Store(pointer, data)
 
-	str_wofid := strconv.FormatInt(data.WOFID, 10)
+	str_wofid := strconv.FormatInt(data.WhosOnFirstId, 10)
 
 	possible_codes := []string{
 		data.Name,

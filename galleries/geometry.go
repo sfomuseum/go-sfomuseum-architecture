@@ -98,7 +98,7 @@ func multipoints(ctx context.Context, r reader.Reader, wofid int64) (orb.MultiPo
 		return orb.MultiPoint(points), nil
 
 	default:
-		return nil, fmt.Errorf("Weirdo geometry type for gallery %d, %s", wofid, geom.GeoJSONType)
+		return nil, fmt.Errorf("Weirdo geometry type for gallery %d, %s", wofid, geom.GeoJSONType())
 	}
 
 }

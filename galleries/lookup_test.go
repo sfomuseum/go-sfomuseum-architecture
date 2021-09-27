@@ -30,10 +30,10 @@ func TestGatesLookup(t *testing.T) {
 			t.Fatalf("Invalid results for '%s'", code)
 		}
 
-		a := results[0].(*Gate)
+		a := results[0].(*Gallery)
 
-		if a.WOFID != wofid {
-			t.Fatalf("Invalid match for '%s', expected %d but got %d", code, wofid, a.WOFID)
+		if a.WhosOnFirstId != wofid {
+			t.Fatalf("Invalid match for '%s', expected %d but got %d", code, wofid, a.WhosOnFirstId)
 		}
 	}
 }

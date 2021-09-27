@@ -12,7 +12,7 @@ func TestGatesLookup(t *testing.T) {
 
 	ctx := context.Background()
 
-	lu, err := architecture.NewLookup(ctx, "sfomuseum://")
+	lu, err := architecture.NewLookup(ctx, "gates://")
 
 	if err != nil {
 		t.Fatalf("Failed to create lookup, %v", err)
@@ -32,8 +32,8 @@ func TestGatesLookup(t *testing.T) {
 
 		a := results[0].(*Gate)
 
-		if a.WOFID != wofid {
-			t.Fatalf("Invalid match for '%s', expected %d but got %d", code, wofid, a.WOFID)
+		if a.WhosOnFirstId != wofid {
+			t.Fatalf("Invalid match for '%s', expected %d but got %d", code, wofid, a.WhosOnFirstId)
 		}
 	}
 }

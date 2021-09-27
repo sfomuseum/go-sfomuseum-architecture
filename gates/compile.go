@@ -55,8 +55,8 @@ func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources
 		name := whosonfirst.Name(f)
 
 		a := Gate{
-			WOFID: wof_id,
-			Name:  name,
+			WhosOnFirstId: wof_id,
+			Name:          name,
 		}
 
 		mu.Lock()
