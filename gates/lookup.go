@@ -1,7 +1,6 @@
 package gates
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -48,24 +47,34 @@ func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 	return NewLookupWithLookupFunc(ctx, lookup_func)
 }
 
-// NewLookup will return an `GatesLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `r`.
+// NewLookupWithReader will return an `GatesLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `r`.
 // `r` will be closed when the `GatesLookupFunc` function instance is invoked.
 // It is assumed that the data in `r` will be formatted in the same way as the procompiled (embedded) data stored in `data/sfomuseum.json`.
 func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) GatesLookupFunc {
 
-	lookup_func := func(ctx context.Context) {
+	defer r.Close()
 
-		defer r.Close()
+	var gates_list []*Gate
 
-		var gates_list []*Gate
+	dec := json.NewDecoder(r)
+	err := dec.Decode(&gates_list)
 
-		dec := json.NewDecoder(r)
-		err := dec.Decode(&gates_list)
+	if err != nil {
 
-		if err != nil {
+		lookup_func := func(ctx context.Context) {
 			lookup_init_err = err
-			return
 		}
+
+		return lookup_func
+	}
+
+	return NewLookupFuncWithGates(ctx, gates_list)
+}
+
+// NewLookupFuncWithGates will return an `GatesLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `gates_list`.
+func NewLookupFuncWithGates(ctx context.Context, gates_list []*Gate) GatesLookupFunc {
+
+	lookup_func := func(ctx context.Context) {
 
 		table := new(sync.Map)
 
@@ -106,23 +115,13 @@ func NewLookupWithLookupFunc(ctx context.Context, lookup_func GatesLookupFunc) (
 
 func NewLookupFromIterator(ctx context.Context, iterator_uri string, iterator_sources ...string) (architecture.Lookup, error) {
 
-	gates_data, err := CompileGatesData(ctx, iterator_uri, iterator_sources...)
+	gates_list, err := CompileGatesData(ctx, iterator_uri, iterator_sources...)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to compile gates data, %w", err)
 	}
 
-	// necessary until there is a NewLookupFuncWithGates method
-	enc_data, err := json.Marshal(gates_data)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal gates data, %w", err)
-	}
-
-	r := bytes.NewReader(enc_data)
-	rc := io.NopCloser(r)
-
-	lookup_func := NewLookupFuncWithReader(ctx, rc)
+	lookup_func := NewLookupFuncWithGates(ctx, gates_list)
 	return NewLookupWithLookupFunc(ctx, lookup_func)
 }
 

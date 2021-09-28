@@ -15,9 +15,9 @@ import (
 // CompileGatesData will generate a list of `Gate` struct to be used as the source data for an `SFOMuseumLookup` instance.
 // The list of gate are compiled by iterating over one or more source. `iterator_uri` is a valid `whosonfirst/go-whosonfirst-iterate` URI
 // and `iterator_sources` are one more (iterator) URIs to process.
-func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources ...string) ([]Gate, error) {
+func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources ...string) ([]*Gate, error) {
 
-	lookup := make([]Gate, 0)
+	lookup := make([]*Gate, 0)
 	mu := new(sync.RWMutex)
 
 	iter_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
@@ -54,13 +54,13 @@ func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources
 		wof_id := whosonfirst.Id(f)
 		name := whosonfirst.Name(f)
 
-		a := Gate{
+		g := &Gate{
 			WhosOnFirstId: wof_id,
 			Name:          name,
 		}
 
 		mu.Lock()
-		lookup = append(lookup, a)
+		lookup = append(lookup, g)
 		mu.Unlock()
 
 		return nil
