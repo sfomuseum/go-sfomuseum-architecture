@@ -14,9 +14,9 @@ import (
 // CompileGalleriesData will generate a list of `Gallery` struct to be used as the source data for an `SFOMuseumLookup` instance.
 // The list of gate are compiled by iterating over one or more source. `iterator_uri` is a valid `whosonfirst/go-whosonfirst-iterate` URI
 // and `iterator_sources` are one more (iterator) URIs to process.
-func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sources ...string) ([]Gallery, error) {
+func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sources ...string) ([]*Gallery, error) {
 
-	lookup := make([]Gallery, 0)
+	lookup := make([]*Gallery, 0)
 	mu := new(sync.RWMutex)
 
 	iter_cb := func(ctx context.Context, fh io.ReadSeeker, args ...interface{}) error {
@@ -70,7 +70,7 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 		inception_rsp := gjson.GetBytes(body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
 
-		a := Gallery{
+		g := &Gallery{
 			WhosOnFirstId: wofid_rsp.Int(),
 			SFOMuseumId:   sfomid_rsp.Int(),
 			MapId:         mapid_rsp.String(),
@@ -80,7 +80,7 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 		}
 
 		mu.Lock()
-		lookup = append(lookup, a)
+		lookup = append(lookup, g)
 		mu.Unlock()
 
 		return nil

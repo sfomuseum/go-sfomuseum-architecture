@@ -1,7 +1,6 @@
 package galleries
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -53,19 +52,29 @@ func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 // It is assumed that the data in `r` will be formatted in the same way as the procompiled (embedded) data stored in `data/sfomuseum.json`.
 func NewLookupFuncWithReader(ctx context.Context, r io.ReadCloser) GalleriesLookupFunc {
 
-	lookup_func := func(ctx context.Context) {
+	defer r.Close()
 
-		defer r.Close()
+	var galleries_list []*Gallery
 
-		var galleries_list []*Gallery
+	dec := json.NewDecoder(r)
+	err := dec.Decode(&galleries_list)
 
-		dec := json.NewDecoder(r)
-		err := dec.Decode(&galleries_list)
+	if err != nil {
 
-		if err != nil {
+		lookup_func := func(ctx context.Context) {
 			lookup_init_err = err
-			return
 		}
+
+		return lookup_func
+	}
+
+	return NewLookupFuncWithGalleries(ctx, galleries_list)
+}
+
+// NewLookup will return an `GalleriesLookupFunc` function instance that, when invoked, will populate an `architecture.Lookup` instance with data stored in `galleries_list`.
+func NewLookupFuncWithGalleries(ctx context.Context, galleries_list []*Gallery) GalleriesLookupFunc {
+
+	lookup_func := func(ctx context.Context) {
 
 		table := new(sync.Map)
 
@@ -106,23 +115,13 @@ func NewLookupWithLookupFunc(ctx context.Context, lookup_func GalleriesLookupFun
 
 func NewLookupFromIterator(ctx context.Context, iterator_uri string, iterator_sources ...string) (architecture.Lookup, error) {
 
-	galleries_data, err := CompileGalleriesData(ctx, iterator_uri, iterator_sources...)
+	galleries_list, err := CompileGalleriesData(ctx, iterator_uri, iterator_sources...)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to compile galleries data, %w", err)
 	}
 
-	// necessary until there is a NewLookupFuncWithGalleries method
-	enc_data, err := json.Marshal(galleries_data)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to marshal galleries data, %w", err)
-	}
-
-	r := bytes.NewReader(enc_data)
-	rc := io.NopCloser(r)
-
-	lookup_func := NewLookupFuncWithReader(ctx, rc)
+	lookup_func := NewLookupFuncWithGalleries(ctx, galleries_list)
 	return NewLookupWithLookupFunc(ctx, lookup_func)
 }
 
