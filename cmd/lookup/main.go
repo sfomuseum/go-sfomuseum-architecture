@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	lookup_uri := flag.String("lookup-uri", "", "...")
+	lookup_uri := flag.String("lookup-uri", "", "Valid options are: gates://, galleries://")
 
 	flag.Parse()
 

@@ -54,9 +54,16 @@ func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources
 		wof_id := whosonfirst.Id(f)
 		name := whosonfirst.Name(f)
 
+		fl, err := whosonfirst.IsCurrent(f)
+
+		if err != nil {
+			return fmt.Errorf("Failed to derive is current status for %s, %v", path, err)
+		}
+
 		g := &Gate{
 			WhosOnFirstId: wof_id,
 			Name:          name,
+			IsCurrent:     fl.StringFlag(),
 		}
 
 		mu.Lock()

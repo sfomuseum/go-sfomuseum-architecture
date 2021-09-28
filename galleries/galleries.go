@@ -19,6 +19,8 @@ type Gallery struct {
 	Inception string `json:"edtf:inception"`
 	// The (EDTF) cessation date for the gallery
 	Cessation string `json:"edtf:cessation"`
+	// A Who's On First "existential" (`KnownUnknownFlag`) flag signaling the gate's status
+	// IsCurrent string `json:"mz:is_current"`
 }
 
 // String() will return the name of the gallery.
