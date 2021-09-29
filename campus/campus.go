@@ -1,3 +1,4 @@
+// package campus provides methods for working with the SFO airport campus.
 package campus
 
 // type Campus is a lightweight data structure to represent the SFO campus with pointers its descendants.
