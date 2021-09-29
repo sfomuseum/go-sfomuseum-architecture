@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/sfomuseum/go-sfomuseum-architecture/gates"
 	"io"
 	"log"
@@ -12,10 +13,12 @@ import (
 
 func main() {
 
+	default_target := fmt.Sprintf("data/%s", gates.DATA_JSON)
+
 	iterator_uri := flag.String("iterator-uri", "repo://?include=properties.sfomuseum:placetype=gate", "A valid whosonfirst/go-whosonfirst-iterate URI")
 	iterator_source := flag.String("iterator-source", "/usr/local/data/sfomuseum-data-architecture", "The URI containing documents to iterate.")
 
-	target := flag.String("target", "data/gates.json", "The path to write SFO Museum gates data.")
+	target := flag.String("target", default_target, "The path to write SFO Museum gates data.")
 	stdout := flag.Bool("stdout", false, "Emit SFO Museum gates data to SDOUT.")
 
 	flag.Parse()
