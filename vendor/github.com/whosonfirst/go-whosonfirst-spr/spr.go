@@ -2,7 +2,6 @@ package spr
 
 import (
 	"github.com/whosonfirst/go-whosonfirst-flags"
-	"github.com/sfomuseum/go-edtf"	
 )
 
 type StandardPlacesResult interface {
@@ -14,8 +13,6 @@ type StandardPlacesResult interface {
 	Repo() string
 	Path() string
 	URI() string
-	Inception() *edtf.EDTFDate
-	Cessation() *edtf.EDTFDate	
 	Latitude() float64
 	Longitude() float64
 	MinLatitude() float64
@@ -29,7 +26,6 @@ type StandardPlacesResult interface {
 	IsSuperseding() flags.ExistentialFlag
 	SupersededBy() []int64
 	Supersedes() []int64
-	BelongsTo() []int64
 	LastModified() int64
 }
 

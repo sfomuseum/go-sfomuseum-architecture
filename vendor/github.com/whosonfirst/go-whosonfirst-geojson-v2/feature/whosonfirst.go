@@ -3,8 +3,6 @@ package feature
 import (
 	"encoding/json"
 	_ "errors"
-	"github.com/sfomuseum/go-edtf"
-	"github.com/sfomuseum/go-edtf/parser"
 	"github.com/skelterjohn/geom"
 	"github.com/whosonfirst/go-whosonfirst-flags"
 	"github.com/whosonfirst/go-whosonfirst-flags/existential"
@@ -13,7 +11,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/utils"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
-	"github.com/whosonfirst/go-whosonfirst-spr/v2"
+	"github.com/whosonfirst/go-whosonfirst-spr"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 	"github.com/whosonfirst/warning"
 	"strconv"
@@ -26,8 +24,6 @@ type WOFFeature struct {
 
 type WOFStandardPlacesResult struct {
 	spr.StandardPlacesResult `json:",omitempty"`
-	EDTFInception            string  `json:"edtf:inception"`
-	EDTFCessation            string  `json:"edtf:cessation"`
 	WOFId                    int64   `json:"wof:id"`
 	WOFParentId              int64   `json:"wof:parent_id"`
 	WOFName                  string  `json:"wof:name"`
@@ -37,7 +33,6 @@ type WOFStandardPlacesResult struct {
 	WOFPath                  string  `json:"wof:path"`
 	WOFSupersededBy          []int64 `json:"wof:superseded_by"`
 	WOFSupersedes            []int64 `json:"wof:supersedes"`
-	WOFBelongsTo             []int64 `json:"wof:belongsto"`
 	MZURI                    string  `json:"mz:uri"`
 	MZLatitude               float64 `json:"mz:latitude"`
 	MZLongitude              float64 `json:"mz:longitude"`
@@ -196,47 +191,6 @@ func (f *WOFFeature) SPR() (spr.StandardPlacesResult, error) {
 	country := whosonfirst.Country(f)
 	repo := whosonfirst.Repo(f)
 
-	inception := whosonfirst.Inception(f)
-	cessation := whosonfirst.Cessation(f)
-
-	// See this: We're accounting for all the pre-2019 EDTF spec
-	// inception but mostly cessation strings by silently swapping
-	// them out (20210321/straup)
-
-	_, err := parser.ParseString(inception)
-
-	if err != nil {
-
-		if !isDeprecatedEDTF(inception) {
-			return nil, err
-		}
-
-		replacement, err := replaceDeprecatedEDTF(inception)
-
-		if err != nil {
-			return nil, err
-		}
-
-		inception = replacement
-	}
-
-	_, err = parser.ParseString(cessation)
-
-	if err != nil {
-
-		if !isDeprecatedEDTF(cessation) {
-			return nil, err
-		}
-
-		replacement, err := replaceDeprecatedEDTF(cessation)
-
-		if err != nil {
-			return nil, err
-		}
-
-		cessation = replacement
-	}
-
 	path, err := uri.Id2RelPath(id)
 
 	if err != nil {
@@ -296,7 +250,6 @@ func (f *WOFFeature) SPR() (spr.StandardPlacesResult, error) {
 
 	superseded_by := whosonfirst.SupersededBy(f)
 	supersedes := whosonfirst.Supersedes(f)
-	belongsto := whosonfirst.BelongsTo(f)
 
 	lastmod := whosonfirst.LastModified(f)
 
@@ -310,9 +263,6 @@ func (f *WOFFeature) SPR() (spr.StandardPlacesResult, error) {
 		WOFPath:         path,
 		WOFSupersedes:   supersedes,
 		WOFSupersededBy: superseded_by,
-		WOFBelongsTo:    belongsto,
-		EDTFInception:   inception,
-		EDTFCessation:   cessation,
 		MZURI:           uri,
 		MZLatitude:      coord.Y,
 		MZLongitude:     coord.X,
@@ -341,25 +291,6 @@ func (spr *WOFStandardPlacesResult) ParentId() string {
 
 func (spr *WOFStandardPlacesResult) Name() string {
 	return spr.WOFName
-}
-
-func (spr *WOFStandardPlacesResult) Inception() *edtf.EDTFDate {
-	return spr.edtfDate(spr.EDTFInception)
-}
-
-func (spr *WOFStandardPlacesResult) Cessation() *edtf.EDTFDate {
-	return spr.edtfDate(spr.EDTFCessation)
-}
-
-func (spr *WOFStandardPlacesResult) edtfDate(edtf_str string) *edtf.EDTFDate {
-
-	d, err := parser.ParseString(edtf_str)
-
-	if err != nil {
-		return nil
-	}
-
-	return d
 }
 
 func (spr *WOFStandardPlacesResult) Placetype() string {
@@ -432,10 +363,6 @@ func (spr *WOFStandardPlacesResult) SupersededBy() []int64 {
 
 func (spr *WOFStandardPlacesResult) Supersedes() []int64 {
 	return spr.WOFSupersedes
-}
-
-func (spr *WOFStandardPlacesResult) BelongsTo() []int64 {
-	return spr.WOFBelongsTo
 }
 
 func (spr *WOFStandardPlacesResult) LastModified() int64 {

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sfomuseum/go-edtf"
 	"github.com/skelterjohn/geom"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-flags"
@@ -183,9 +182,9 @@ func LabelOrDerived(f geojson.Feature) string {
 		inc := Inception(f)
 		ces := Cessation(f)
 
-		if inc == edtf.UNKNOWN && ces == edtf.UNKNOWN {
+		if inc == "uuuu" && ces == "uuuu" {
 			label = name
-		} else if ces == "open" || ces == edtf.UNKNOWN {
+		} else if ces == "open" || ces == "uuuu" {
 			label = fmt.Sprintf("%s (%s)", name, inc)
 		} else {
 			label = fmt.Sprintf("%s (%s - %s)", name, inc, ces)
@@ -196,25 +195,25 @@ func LabelOrDerived(f geojson.Feature) string {
 }
 
 func Inception(f geojson.Feature) string {
-	return utils.StringProperty(f.Bytes(), []string{"properties.edtf:inception"}, edtf.UNKNOWN)
+	return utils.StringProperty(f.Bytes(), []string{"properties.edtf:inception"}, "uuuu")
 }
 
 func Cessation(f geojson.Feature) string {
-	return utils.StringProperty(f.Bytes(), []string{"properties.edtf:cessation"}, edtf.UNKNOWN)
+	return utils.StringProperty(f.Bytes(), []string{"properties.edtf:cessation"}, "uuuu")
 }
 
 func DateSpan(f geojson.Feature) string {
 
-	lower := utils.StringProperty(f.Bytes(), []string{"properties.date:inception_lower"}, edtf.UNKNOWN)
-	upper := utils.StringProperty(f.Bytes(), []string{"properties.date:cessation_upper"}, edtf.UNKNOWN)
+	lower := utils.StringProperty(f.Bytes(), []string{"properties.date:inception_lower"}, "uuuu")
+	upper := utils.StringProperty(f.Bytes(), []string{"properties.date:cessation_upper"}, "uuuu")
 
 	/*
-		if lower == edtf.UNKNOWN {
-			lower = utils.StringProperty(f.Bytes(), []string{"properties.edtf:inception"}, edtf.UNKNOWN)
+		if lower == "uuuu" {
+			lower = utils.StringProperty(f.Bytes(), []string{"properties.edtf:inception"}, "uuuu")
 		}
 
-		if upper == edtf.UNKNOWN {
-			upper = utils.StringProperty(f.Bytes(), []string{"properties.edtf:cessation"}, edtf.UNKNOWN)
+		if upper == "uuuu" {
+			upper = utils.StringProperty(f.Bytes(), []string{"properties.edtf:cessation"}, "uuuu")
 		}
 	*/
 
@@ -223,8 +222,8 @@ func DateSpan(f geojson.Feature) string {
 
 func DateRange(f geojson.Feature) (*time.Time, *time.Time, error) {
 
-	str_lower := utils.StringProperty(f.Bytes(), []string{"properties.date:inception_lower"}, edtf.UNKNOWN)
-	str_upper := utils.StringProperty(f.Bytes(), []string{"properties.date:cessation_upper"}, edtf.UNKNOWN)
+	str_lower := utils.StringProperty(f.Bytes(), []string{"properties.date:inception_lower"}, "uuuu")
+	str_upper := utils.StringProperty(f.Bytes(), []string{"properties.date:cessation_upper"}, "uuuu")
 
 	ymd := "2006-01-02"
 
@@ -365,26 +364,7 @@ func IsDeprecated(f geojson.Feature) (flags.ExistentialFlag, error) {
 		"properties.edtf:deprecated",
 	}
 
-	// "-" is not part of the EDTF spec it's just a default
-	// string that we define for use in the switch statements
-	// below (20210209/thisisaaronland)
-
 	v := utils.StringProperty(f.Bytes(), possible, "-")
-
-	// 2019 EDTF spec (ISO-8601:1/2)
-
-	switch v {
-	case "-":
-		return existential.NewKnownUnknownFlag(0)
-	case edtf.UNKNOWN:
-		return existential.NewKnownUnknownFlag(-1)
-	default:
-		// pass
-	}
-
-	// 2012 EDTF spec - annoyingly the semantics of ""
-	// changed between the two (was meant to signal open
-	// and now signals unknown)
 
 	switch v {
 	case "-":
@@ -394,10 +374,8 @@ func IsDeprecated(f geojson.Feature) (flags.ExistentialFlag, error) {
 	case "uuuu":
 		return existential.NewKnownUnknownFlag(-1)
 	default:
-		//
+		return existential.NewKnownUnknownFlag(1)
 	}
-
-	return existential.NewKnownUnknownFlag(1)
 }
 
 func IsCeased(f geojson.Feature) (flags.ExistentialFlag, error) {
@@ -408,21 +386,6 @@ func IsCeased(f geojson.Feature) (flags.ExistentialFlag, error) {
 
 	v := utils.StringProperty(f.Bytes(), possible, "uuuu")
 
-	// 2019 EDTF spec (ISO-8601:1/2)
-
-	switch v {
-	case edtf.OPEN:
-		return existential.NewKnownUnknownFlag(0)
-	case edtf.UNKNOWN:
-		return existential.NewKnownUnknownFlag(-1)
-	default:
-		// pass
-	}
-
-	// 2012 EDTF spec - annoyingly the semantics of ""
-	// changed between the two (was meant to signal open
-	// and now signals unknown)
-
 	switch v {
 	case "":
 		return existential.NewKnownUnknownFlag(0)
@@ -431,10 +394,8 @@ func IsCeased(f geojson.Feature) (flags.ExistentialFlag, error) {
 	case "uuuu":
 		return existential.NewKnownUnknownFlag(-1)
 	default:
-		// pass
+		return existential.NewKnownUnknownFlag(1)
 	}
-
-	return existential.NewKnownUnknownFlag(1)
 }
 
 func IsSuperseded(f geojson.Feature) (flags.ExistentialFlag, error) {

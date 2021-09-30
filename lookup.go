@@ -11,14 +11,6 @@ type Lookup interface {
 	Append(context.Context, interface{}) error
 }
 
-// TBD...
-type LookupResponse interface {
-	WhosOnFirstId() int64
-	SFOMuseumId() int64
-	String() string
-	Raw() interface{}
-}
-
 var lookup_roster roster.Roster
 
 type LookupInitializationFunc func(ctx context.Context, uri string) (Lookup, error)

@@ -2,14 +2,13 @@ package feature
 
 import (
 	"encoding/json"
-	"github.com/sfomuseum/go-edtf"
 	"github.com/skelterjohn/geom"
 	"github.com/whosonfirst/go-whosonfirst-flags"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/geometry"
 	props_geom "github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/geometry"
 	"github.com/whosonfirst/go-whosonfirst-geojson-v2/utils"
-	"github.com/whosonfirst/go-whosonfirst-spr/v2"
+	"github.com/whosonfirst/go-whosonfirst-spr"
 	"strings"
 )
 
@@ -178,14 +177,6 @@ func (spr *GeoJSONStandardPlacesResult) Placetype() string {
 	return spr.SPRPlacetype
 }
 
-func (spr *GeoJSONStandardPlacesResult) Inception() *edtf.EDTFDate {
-	return nil
-}
-
-func (spr *GeoJSONStandardPlacesResult) Cessation() *edtf.EDTFDate {
-	return nil
-}
-
 func (spr *GeoJSONStandardPlacesResult) Country() string {
 	return "XX"
 }
@@ -251,10 +242,6 @@ func (spr *GeoJSONStandardPlacesResult) SupersededBy() []int64 {
 }
 
 func (spr *GeoJSONStandardPlacesResult) Supersedes() []int64 {
-	return []int64{}
-}
-
-func (spr *GeoJSONStandardPlacesResult) BelongsTo() []int64 {
 	return []int64{}
 }
 
