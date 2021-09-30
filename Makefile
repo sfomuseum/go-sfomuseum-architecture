@@ -1,4 +1,4 @@
-compile-all:
+compile:
 	@make compile-gates
 	@make compile-galleries
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -50,17 +51,25 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 			return fmt.Errorf("Failed load feature from %s, %w", path, err)
 		}
 
-		name_rsp := gjson.GetBytes(body, "properties.wof:name")
-		wofid_rsp := gjson.GetBytes(body, "properties.wof:id")
+		wof_id, err := properties.Id(body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to derive ID for %s, %w", path, err)
+		}
+
+		wof_name, err := properties.Name(body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to derive name for %s, %w", path, err)
+		}
+
+		fl, err := properties.IsCurrent(body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to determine is current for %s, %v", path, err)
+		}
+
 		sfomid_rsp := gjson.GetBytes(body, "properties.sfomuseum:gallery_id")
-
-		if !name_rsp.Exists() {
-			return fmt.Errorf("Missing wof:name property (%s)", path)
-		}
-
-		if !wofid_rsp.Exists() {
-			return fmt.Errorf("Missing wof:id property (%s)", path)
-		}
 
 		if !sfomid_rsp.Exists() {
 			return fmt.Errorf("Missing sfomuseum:gallery_id property (%s)", path)
@@ -71,12 +80,13 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 		cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
 
 		g := &Gallery{
-			WhosOnFirstId: wofid_rsp.Int(),
+			WhosOnFirstId: wof_id,
 			SFOMuseumId:   sfomid_rsp.Int(),
 			MapId:         mapid_rsp.String(),
-			Name:          name_rsp.String(),
+			Name:          wof_name,
 			Inception:     inception_rsp.String(),
 			Cessation:     cessation_rsp.String(),
+			IsCurrent:     fl.Flag(),
 		}
 
 		mu.Lock()

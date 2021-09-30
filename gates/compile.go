@@ -3,8 +3,7 @@ package gates
 import (
 	"context"
 	"fmt"
-	"github.com/sfomuseum/go-sfomuseum-geojson/feature"
-	"github.com/whosonfirst/go-whosonfirst-geojson-v2/properties/whosonfirst"
+	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-iterate/emitter"
 	"github.com/whosonfirst/go-whosonfirst-iterate/iterator"
 	"github.com/whosonfirst/go-whosonfirst-uri"
@@ -45,25 +44,34 @@ func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources
 			return nil
 		}
 
-		f, err := feature.LoadFeatureFromReader(fh)
+		body, err := io.ReadAll(fh)
 
 		if err != nil {
-			return fmt.Errorf("Failed load feature from %s, %w", path, err)
+			return fmt.Errorf("Failed to read %s, %w", path, err)
 		}
 
-		wof_id := whosonfirst.Id(f)
-		name := whosonfirst.Name(f)
-
-		fl, err := whosonfirst.IsCurrent(f)
+		wof_id, err := properties.Id(body)
 
 		if err != nil {
-			return fmt.Errorf("Failed to derive is current status for %s, %v", path, err)
+			return fmt.Errorf("Failed to derive ID for %s, %w", path, err)
+		}
+
+		wof_name, err := properties.Name(body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to derive name for %s, %w", path, err)
+		}
+
+		fl, err := properties.IsCurrent(body)
+
+		if err != nil {
+			return fmt.Errorf("Failed to determine is current for %s, %v", path, err)
 		}
 
 		g := &Gate{
 			WhosOnFirstId: wof_id,
-			Name:          name,
-			IsCurrent:     fl.StringFlag(),
+			Name:          wof_name,
+			IsCurrent:     fl.Flag(),
 		}
 
 		mu.Lock()

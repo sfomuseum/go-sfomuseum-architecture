@@ -12,10 +12,10 @@ type Gate struct {
 	// The name of this gate.
 	Name string `json:"wof:name"`
 	// A Who's On First "existential" (`KnownUnknownFlag`) flag signaling the gate's status
-	IsCurrent string `json:"mz:is_current"`
+	IsCurrent int64 `json:"mz:is_current"`
 }
 
 // String() will return the name of the gate.
 func (g *Gate) String() string {
-	return fmt.Sprintf("%d %s (%s)", g.WhosOnFirstId, g.Name, g.IsCurrent)
+	return fmt.Sprintf("%d %s (%d)", g.WhosOnFirstId, g.Name, g.IsCurrent)
 }

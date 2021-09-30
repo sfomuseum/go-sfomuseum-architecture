@@ -26,6 +26,8 @@ github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/sfomuseum/go-edtf v0.2.2/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
 github.com/sfomuseum/go-edtf v0.2.3 h1:wpcpwl1RD9W/sXFDi4zpoIpQcIwIk8em9CGwa7YWv4g=
 github.com/sfomuseum/go-edtf v0.2.3/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
+github.com/sfomuseum/go-edtf v0.3.0 h1:D9YI8FUR9mGge2aVFLIJE1IF+6KDKZddXCftPjUPnSo=
+github.com/sfomuseum/go-edtf v0.3.0/go.mod h1:1rP0EJZ/84j3HO80vGcnG2T9MFBDAFyTNtjrr8cv3T4=
 github.com/sfomuseum/go-flags v0.7.0/go.mod h1:ML3DTNbF9xnjExSdS/9FtVLjIUhRU5gm/ehzISv+t2w=
 github.com/sfomuseum/go-sfomuseum-geojson v0.1.2 h1:rZM4b1+LrdP3Yzrsoed7Ror33gThictCpgqLmhESfdA=
 github.com/sfomuseum/go-sfomuseum-geojson v0.1.2/go.mod h1:khGRObq7bqsMqr4VWrw0NmZQmTyV82YEYK90w7SF9mk=
@@ -60,6 +62,8 @@ github.com/whosonfirst/go-reader v0.9.0/go.mod h1:6byB+UfZFNLYFqgsC/EKxTnKY8ahNg
 github.com/whosonfirst/go-whosonfirst-cli v0.1.0/go.mod h1:Edy+amD+fMq1QS1yxB3u8maA8I93q/LG7JRNh+fsdfc=
 github.com/whosonfirst/go-whosonfirst-crawl v0.2.1 h1:nNG7r7/4MaII/NM8Df2oqgfgVNBDoIKlseleoX1vw1Q=
 github.com/whosonfirst/go-whosonfirst-crawl v0.2.1/go.mod h1:MTD1TCgAkXlAtysPU98ylrz9Y5+ZCfRrsrBnRyiH/t8=
+github.com/whosonfirst/go-whosonfirst-feature v0.0.3 h1:WfwLjlOxbLdIxGF4RoeVCByHn8tRDnMFqr+UOnVOTmo=
+github.com/whosonfirst/go-whosonfirst-feature v0.0.3/go.mod h1:7ezV1UK9GwPInW7s4Mf16qxZsvKuzCYOa4oiw/ksNLo=
 github.com/whosonfirst/go-whosonfirst-flags v0.1.0/go.mod h1:bovMiQphaVhqemXFmNVf9Ts0tqnWtzHRFMUSKX+zTE8=
 github.com/whosonfirst/go-whosonfirst-flags v0.2.0/go.mod h1:ECd0AJJZIlybmjTGB9z+CPz9pSiMTwxur7fPKmDnoqI=
 github.com/whosonfirst/go-whosonfirst-flags v0.4.2 h1:HWjy/0MfAQMdCj4M9hi3LAITgK/D+cuDWGHP37mFeZo=
