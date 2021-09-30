@@ -45,11 +45,11 @@ func FindCurrentGateWithLookup(ctx context.Context, lookup architecture.Lookup, 
 
 	switch len(current) {
 	case 0:
-		return nil, fmt.Errorf("No matches for %s", code)
+		return nil, NotFound{code}
 	case 1:
 		return current[0], nil
 	default:
-		return nil, fmt.Errorf("Multiple matches for %s (%v)", code, current)
+		return nil, MultipleCandidates{code}
 	}
 
 }
