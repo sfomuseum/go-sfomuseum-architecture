@@ -6,9 +6,11 @@ import (
 	"testing"
 )
 
-func TestGatesLookup(t *testing.T) {
+func TestGalleriesLookup(t *testing.T) {
 
-	wofid_tests := map[string]int64{}
+	wofid_tests := map[string]int64{
+		"D16": 1745882461,
+	}
 
 	ctx := context.Background()
 
