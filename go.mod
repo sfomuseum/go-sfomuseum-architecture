@@ -9,6 +9,6 @@ require (
 	github.com/tidwall/gjson v1.9.1
 	github.com/whosonfirst/go-reader v0.9.0
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.3
-	github.com/whosonfirst/go-whosonfirst-iterate v1.2.0
+	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.0.0
 	github.com/whosonfirst/go-whosonfirst-uri v1.1.0
 )
