@@ -15,7 +15,7 @@ type Campus struct {
 type Garage struct {
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
-	PublicArt     []*PublicArt `json:"publicart"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
 }
 
 // type Complex is a lightweight data structure to represent the terminal complex at SFO with pointers its descendants.
@@ -29,38 +29,38 @@ type Complex struct {
 type ObservationDeck struct {
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
-	PublicArt     []*PublicArt `json:"publicart"`
-	Galleries     []*Gallery   `json:"galleries"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+	Galleries     []*Gallery   `json:"galleries,omitempty"`
 }
 
 // type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
 type Terminal struct {
 	WhosOnFirstId int64           `json:"id"`
 	SFOId         string          `json:"sfo:id"`
-	CommonAreas   []*CommonArea   `json:"commonareas"`
-	BoardingAreas []*BoardingArea `json:"boardingareas"`
+	CommonAreas   []*CommonArea   `json:"commonareas,omitempty"`
+	BoardingAreas []*BoardingArea `json:"boardingareas,omitempty"`
 }
 
 // type CommonArea is a lightweight data structure to represent common areas at SFO with pointers its descendants.
 type CommonArea struct {
 	WhosOnFirstId    int64              `json:"id"`
 	SFOId            string             `json:"sfo:id"`
-	Gates            []*Gate            `json:"gates"`
-	Checkpoints      []*Checkpoint      `json:"checkpoints"`
-	Galleries        []*Gallery         `json:"galleries"`
-	PublicArt        []*PublicArt       `json:"publicart"`
-	ObservationDecks []*ObservationDeck `json:"observationdecks"` // for example T2
+	Gates            []*Gate            `json:"gates,omitempty"`
+	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
+	Galleries        []*Gallery         `json:"galleries,omitempty"`
+	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
+	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"` // for example T2
 }
 
 // type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.
 type BoardingArea struct {
 	WhosOnFirstId    int64              `json:"id"`
 	SFOId            string             `json:"sfo:id"`
-	Gates            []*Gate            `json:"gates"`
-	Checkpoints      []*Checkpoint      `json:"checkpoints"`
-	Galleries        []*Gallery         `json:"galleries"`
-	PublicArt        []*PublicArt       `json:"publicart"`
-	ObservationDecks []*ObservationDeck `json:"observationdecks"`
+	Gates            []*Gate            `json:"gates,omitempty"`
+	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
+	Galleries        []*Gallery         `json:"galleries,omitempty"`
+	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
+	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"`
 }
 
 // type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.

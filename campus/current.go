@@ -147,8 +147,14 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 		terminal := &Terminal{
 			WhosOnFirstId: t_id,
 			SFOId:         sfoid,
-			CommonAreas:   commonareas,
-			BoardingAreas: boardingareas,
+		}
+
+		if len(commonareas) > 0 {
+			terminal.CommonAreas = commonareas
+		}
+
+		if len(boardingareas) > 0 {
+			terminal.BoardingAreas = boardingareas
 		}
 
 		terminals[idx] = terminal
@@ -200,8 +206,14 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 		deck := &ObservationDeck{
 			WhosOnFirstId: d_id,
 			SFOId:         sfoid,
-			Galleries:     galleries,
-			PublicArt:     publicart,
+		}
+
+		if len(galleries) > 0 {
+			deck.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			deck.PublicArt = publicart
 		}
 
 		decks[idx] = deck
@@ -289,13 +301,28 @@ func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea
 		}
 
 		area := &CommonArea{
-			WhosOnFirstId:    c_id,
-			SFOId:            sfoid,
-			Gates:            gates,
-			Checkpoints:      checkpoints,
-			Galleries:        galleries,
-			PublicArt:        publicart,
-			ObservationDecks: observation_decks,
+			WhosOnFirstId: c_id,
+			SFOId:         sfoid,
+		}
+
+		if len(gates) > 0 {
+			area.Gates = gates
+		}
+
+		if len(checkpoints) > 0 {
+			area.Checkpoints = checkpoints
+		}
+
+		if len(galleries) > 0 {
+			area.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			area.PublicArt = publicart
+		}
+
+		if len(observation_decks) > 0 {
+			area.ObservationDecks = observation_decks
 		}
 
 		commonareas[idx] = area
@@ -340,7 +367,7 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			return nil, err
 		}
 
-		observationdecks, err := findObservationDecks(ctx, db, b_id)
+		observation_decks, err := findObservationDecks(ctx, db, b_id)
 
 		if err != nil {
 			return nil, err
@@ -372,13 +399,28 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 		}
 
 		area := &BoardingArea{
-			WhosOnFirstId:    b_id,
-			SFOId:            sfoid,
-			Gates:            gates,
-			Checkpoints:      checkpoints,
-			Galleries:        galleries,
-			PublicArt:        publicart,
-			ObservationDecks: observationdecks,
+			WhosOnFirstId: b_id,
+			SFOId:         sfoid,
+		}
+
+		if len(gates) > 0 {
+			area.Gates = gates
+		}
+
+		if len(checkpoints) > 0 {
+			area.Checkpoints = checkpoints
+		}
+
+		if len(galleries) > 0 {
+			area.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			area.PublicArt = publicart
+		}
+
+		if len(observation_decks) > 0 {
+			area.ObservationDecks = observation_decks
 		}
 
 		boardingareas[idx] = area
