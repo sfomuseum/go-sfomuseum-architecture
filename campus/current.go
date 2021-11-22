@@ -42,6 +42,8 @@ import (
 
 const FIRST_SFO int64 = 1159396329
 
+// MostRecentComplexWithIterator will return a `Complex` instance representing the most recent relationships of the SFO terminal complex
+// and its descendants derived from data defined in 'iterator_uri' and 'paths'.
 func MostRecentComplexWithIterator(ctx context.Context, iterator_uri string, paths ...string) (*Complex, error) {
 
 	dsn := ":memory:"
