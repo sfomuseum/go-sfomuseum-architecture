@@ -1,5 +1,6 @@
 cli:
 	@make cli-lookup
+	go build -mod vendor -o bin/supersede-gallery cmd/supersede-gallery/main.go
 
 cli-lookup:
 	go build -mod vendor -o bin/lookup cmd/lookup/main.go
