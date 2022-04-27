@@ -122,5 +122,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to write previous gallery, %v", err)
 	}
-	
+
+	log.Printf("Created new gallery record with ID %d\n", new_id)
 }
