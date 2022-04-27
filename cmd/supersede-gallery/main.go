@@ -73,6 +73,7 @@ func main() {
 	}
 
 	new_updates := map[string]interface{}{
+		"properties.id": new_id,		
 		"properties.wof:id": new_id,
 		"properties.wof:parent_id": *parent_id,
 		"properties.wof:hierarchy": gjson.GetBytes(parent_f, "properties.wof:hierarchy").Value(),
