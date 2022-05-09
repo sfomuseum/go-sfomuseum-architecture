@@ -39,13 +39,14 @@ github.com/mmcloughlin/geohash
 github.com/natefinch/atomic
 # github.com/paulmach/go.geojson v1.4.0
 github.com/paulmach/go.geojson
-# github.com/paulmach/orb v0.5.0
+# github.com/paulmach/orb v0.6.0
 ## explicit
 github.com/paulmach/orb
+github.com/paulmach/orb/encoding/wkt
 github.com/paulmach/orb/geojson
 github.com/paulmach/orb/internal/length
 github.com/paulmach/orb/planar
-# github.com/sfomuseum/go-edtf v0.3.1
+# github.com/sfomuseum/go-edtf v1.0.0
 github.com/sfomuseum/go-edtf
 github.com/sfomuseum/go-edtf/calendar
 github.com/sfomuseum/go-edtf/common
@@ -77,32 +78,30 @@ github.com/tidwall/match
 github.com/tidwall/pretty
 # github.com/tidwall/sjson v1.2.4
 github.com/tidwall/sjson
-# github.com/twpayne/go-geom v1.4.1
-github.com/twpayne/go-geom
-github.com/twpayne/go-geom/encoding/geojson
-github.com/twpayne/go-geom/encoding/wkt
-# github.com/whosonfirst/go-ioutil v1.0.1
+# github.com/whosonfirst/go-ioutil v1.0.2
 github.com/whosonfirst/go-ioutil
-# github.com/whosonfirst/go-reader v0.10.0
+# github.com/whosonfirst/go-reader v0.11.0
 ## explicit
 github.com/whosonfirst/go-reader
 # github.com/whosonfirst/go-rfc-5646 v0.1.0
 github.com/whosonfirst/go-rfc-5646
 # github.com/whosonfirst/go-whosonfirst-crawl v0.2.1
 github.com/whosonfirst/go-whosonfirst-crawl
-# github.com/whosonfirst/go-whosonfirst-export/v2 v2.4.2
+# github.com/whosonfirst/go-whosonfirst-export/v2 v2.4.3
 ## explicit
 github.com/whosonfirst/go-whosonfirst-export/v2
 github.com/whosonfirst/go-whosonfirst-export/v2/properties
-# github.com/whosonfirst/go-whosonfirst-feature v0.0.20
+# github.com/whosonfirst/go-whosonfirst-feature v0.0.23
 ## explicit
+github.com/whosonfirst/go-whosonfirst-feature/alt
+github.com/whosonfirst/go-whosonfirst-feature/geometry
 github.com/whosonfirst/go-whosonfirst-feature/properties
 # github.com/whosonfirst/go-whosonfirst-flags v0.4.3
 github.com/whosonfirst/go-whosonfirst-flags
 github.com/whosonfirst/go-whosonfirst-flags/existential
 # github.com/whosonfirst/go-whosonfirst-format v0.3.7
 github.com/whosonfirst/go-whosonfirst-format
-# github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.4
+# github.com/whosonfirst/go-whosonfirst-geojson-v2 v0.16.3
 github.com/whosonfirst/go-whosonfirst-geojson-v2
 github.com/whosonfirst/go-whosonfirst-geojson-v2/feature
 github.com/whosonfirst/go-whosonfirst-geojson-v2/geometry
@@ -130,18 +129,20 @@ github.com/whosonfirst/go-whosonfirst-placetypes/placetypes
 # github.com/whosonfirst/go-whosonfirst-sources v0.1.0
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
-# github.com/whosonfirst/go-whosonfirst-spr/v2 v2.0.0
+# github.com/whosonfirst/go-whosonfirst-spr/v2 v2.2.0
 github.com/whosonfirst/go-whosonfirst-spr/v2
-# github.com/whosonfirst/go-whosonfirst-sqlite-features v0.9.4
+# github.com/whosonfirst/go-whosonfirst-sqlite-features v0.10.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-sqlite-features
 github.com/whosonfirst/go-whosonfirst-sqlite-features/tables
-# github.com/whosonfirst/go-whosonfirst-sqlite-features-index v1.4.6
+# github.com/whosonfirst/go-whosonfirst-sqlite-features-index v1.5.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-sqlite-features-index
 # github.com/whosonfirst/go-whosonfirst-sqlite-index/v2 v2.0.1
 ## explicit
 github.com/whosonfirst/go-whosonfirst-sqlite-index/v2
+# github.com/whosonfirst/go-whosonfirst-sqlite-index/v3 v3.0.0
+github.com/whosonfirst/go-whosonfirst-sqlite-index/v3
 # github.com/whosonfirst/go-whosonfirst-uri v1.2.0
 ## explicit
 github.com/whosonfirst/go-whosonfirst-uri
