@@ -68,8 +68,6 @@ func NewLookup(ctx context.Context, uri string) (architecture.Lookup, error) {
 		data_url := fmt.Sprintf("https://raw.githubusercontent.com/sfomuseum/go-sfomuseum-architecture/main/data/%s", DATA_JSON)
 		rsp, err := http.Get(data_url)
 
-		_ log.Println("WTF", data_url)
-		
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load remote data from Github, %w", err)
 		}
