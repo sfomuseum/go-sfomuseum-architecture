@@ -8,8 +8,20 @@ import (
 
 func TestGalleriesLookup(t *testing.T) {
 
+	/*
+
+	> ./bin/lookup -lookup-uri galleries://sfomuseum 2D
+	1729813699#80 2020~-2021-05-25 2D Sky Terrace Platform
+	1729813701#81 2020~-2021-05-25 2D Sky Terrace Wall
+	1745882461#81 2021-05-25-2021-11-09 2D Sky Terrace Wall
+	1745882459#80 2021-05-25-2021-11-09 2D Sky Terrace Platform
+	1763588491#80 2021-11-09-.. 2D Sky Terrace Platform
+	1763588495#81 2021-11-09-.. 2D Sky Terrace Wall
+
+	*/
+
 	wofid_tests := map[string]int64{
-		"D16": 1745882461,
+		"2D": 1729813699, // 2020~-2021-05-25 2D Sky Terrace Platform
 	}
 
 	ctx := context.Background()
@@ -26,10 +38,6 @@ func TestGalleriesLookup(t *testing.T) {
 
 		if err != nil {
 			t.Fatalf("Unable to find '%s', %v", code, err)
-		}
-
-		if len(results) != 1 {
-			t.Fatalf("Invalid results for '%s'", code)
 		}
 
 		a := results[0].(*Gallery)

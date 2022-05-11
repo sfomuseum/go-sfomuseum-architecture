@@ -8,7 +8,7 @@ import (
 func TestFindCurrentGallery(t *testing.T) {
 
 	tests := map[string]int64{
-		"D16": 1745882461,
+		"2E": 1763594985, // Kadish Gallery
 	}
 
 	ctx := context.Background()

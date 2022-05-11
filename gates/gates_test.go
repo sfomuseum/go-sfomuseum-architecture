@@ -8,7 +8,7 @@ import (
 func TestFindCurrentGate(t *testing.T) {
 
 	tests := map[string]int64{
-		"A9": 1745882385,
+		"A9": 1763588417,
 	}
 
 	ctx := context.Background()

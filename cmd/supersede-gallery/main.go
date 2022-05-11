@@ -6,15 +6,14 @@ package main
 import (
 	"context"
 	"flag"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v2"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
-	"github.com/whosonfirst/go-whosonfirst-id"	
+	"github.com/whosonfirst/go-whosonfirst-id"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	"github.com/whosonfirst/go-writer"
 	"log"
-	
 )
 
 func main() {
@@ -23,13 +22,13 @@ func main() {
 	architecture_writer_uri := flag.String("architecture-writer-uri", "", "If empty, the value of the -architecture-reader-uri flag will be used.")
 
 	gallery_id := flag.Int64("gallery-id", 0, "The SFO Museum gallery ID to supersede")
-	parent_id := flag.Int64("parent-id", 0, "The SFO Museum parent ID of the new gallery")	
+	parent_id := flag.Int64("parent-id", 0, "The SFO Museum parent ID of the new gallery")
 
 	name := flag.String("name", "", "An optional name for the new gallery. If empty the name of the previous gallery will be used.")
 	map_id := flag.String("map_id", "", "An optional map ID for the new gallery. If empty the name of the previous gallery will be used.")
 
 	flag.Parse()
-	
+
 	ctx := context.Background()
 
 	if *architecture_writer_uri == "" {
@@ -53,7 +52,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create ID provider, %v", err)
 	}
-		
+
 	gallery_f, err := wof_reader.LoadBytes(ctx, arch_r, *gallery_id)
 
 	if err != nil {
@@ -73,14 +72,14 @@ func main() {
 	}
 
 	new_updates := map[string]interface{}{
-		"properties.id": new_id,		
-		"properties.wof:id": new_id,
-		"properties.wof:parent_id": *parent_id,
-		"properties.wof:hierarchy": gjson.GetBytes(parent_f, "properties.wof:hierarchy").Value(),
-		"properties.mz:is_current": gjson.GetBytes(parent_f, "properties.mz:is_current").Value(),
+		"properties.id":             new_id,
+		"properties.wof:id":         new_id,
+		"properties.wof:parent_id":  *parent_id,
+		"properties.wof:hierarchy":  gjson.GetBytes(parent_f, "properties.wof:hierarchy").Value(),
+		"properties.mz:is_current":  gjson.GetBytes(parent_f, "properties.mz:is_current").Value(),
 		"properties.edtf:inception": gjson.GetBytes(parent_f, "properties.edtf:inception").Value(),
 		"properties.edtf:cessation": gjson.GetBytes(parent_f, "properties.edtf:cessation").Value(),
-		"properties.wof:supersedes": []int64{ *gallery_id },
+		"properties.wof:supersedes": []int64{*gallery_id},
 	}
 
 	if *name != "" {
@@ -92,7 +91,7 @@ func main() {
 	}
 
 	// Create and record the new gallery
-	
+
 	_, new_gallery, err := export.AssignPropertiesIfChanged(ctx, gallery_f, new_updates)
 
 	if err != nil {
@@ -106,11 +105,11 @@ func main() {
 	}
 
 	old_updates := map[string]interface{}{
-		"properties.wof:superseded_by": []int64{ new_id },
+		"properties.wof:superseded_by": []int64{new_id},
 	}
 
 	// Now update the previous gallery
-	
+
 	_, gallery_f, err = export.AssignPropertiesIfChanged(ctx, gallery_f, old_updates)
 
 	if err != nil {
