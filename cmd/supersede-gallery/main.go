@@ -6,8 +6,8 @@ package main
 import (
 	"context"
 	"flag"
-	sfom_reader "github.com/sfomuseum/go-sfomuseum-reader"
-	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
+	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v2"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
@@ -54,13 +54,13 @@ func main() {
 		log.Fatalf("Failed to create ID provider, %v", err)
 	}
 		
-	gallery_f, err := sfom_reader.LoadBytesFromID(ctx, arch_r, *gallery_id)
+	gallery_f, err := wof_reader.LoadBytes(ctx, arch_r, *gallery_id)
 
 	if err != nil {
 		log.Fatalf("Failed to load gallery record, %v", err)
 	}
 
-	parent_f, err := sfom_reader.LoadBytesFromID(ctx, arch_r, *parent_id)
+	parent_f, err := wof_reader.LoadBytes(ctx, arch_r, *parent_id)
 
 	if err != nil {
 		log.Fatalf("Failed to load parent record, %v", err)
@@ -99,7 +99,7 @@ func main() {
 		log.Fatalf("Failed to export new gallery, %v", err)
 	}
 
-	_, err = sfom_writer.WriteFeatureBytes(ctx, arch_wr, new_gallery)
+	_, err = sfom_writer.WriteBytes(ctx, arch_wr, new_gallery)
 
 	if err != nil {
 		log.Fatalf("Failed to write new gallery, %v", err)
@@ -117,7 +117,7 @@ func main() {
 		log.Fatalf("Failed to export new gallery, %v", err)
 	}
 
-	_, err = sfom_writer.WriteFeatureBytes(ctx, arch_wr, gallery_f)
+	_, err = sfom_writer.WriteBytes(ctx, arch_wr, gallery_f)
 
 	if err != nil {
 		log.Fatalf("Failed to write previous gallery, %v", err)

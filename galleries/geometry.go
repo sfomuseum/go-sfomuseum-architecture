@@ -6,7 +6,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/geojson"
 	"github.com/paulmach/orb/planar"
-	sfom_reader "github.com/sfomuseum/go-sfomuseum-reader"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	"github.com/whosonfirst/go-reader"
 )
 
@@ -54,7 +54,7 @@ func GeometryForGalleryIDs(ctx context.Context, r reader.Reader, gallery_ids ...
 // today they are not.
 func multipoints(ctx context.Context, r reader.Reader, wofid int64) (orb.MultiPoint, error) {
 
-	body, err := sfom_reader.LoadBytesFromID(ctx, r, wofid)
+	body, err := wof_reader.LoadBytes(ctx, r, wofid)
 
 	if err != nil {
 		return nil, err

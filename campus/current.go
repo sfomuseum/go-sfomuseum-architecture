@@ -36,7 +36,7 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
-	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v2"
+	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
 	"log"
 )
 
