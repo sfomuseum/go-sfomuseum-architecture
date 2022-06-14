@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/sfomuseum/go-sfomuseum-architecture/galleries"
 	_ "github.com/sfomuseum/go-sfomuseum-architecture/gates"
+	_ "github.com/sfomuseum/go-sfomuseum-architecture/terminals"
 )
 
 import (
