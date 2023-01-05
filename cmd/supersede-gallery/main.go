@@ -6,13 +6,13 @@ package main
 import (
 	"context"
 	"flag"
-	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v2"
+	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v3"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-export/v2"
 	"github.com/whosonfirst/go-whosonfirst-id"
 	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
-	"github.com/whosonfirst/go-writer"
+	"github.com/whosonfirst/go-writer/v3"
 	"log"
 )
 
@@ -65,7 +65,7 @@ func main() {
 		log.Fatalf("Failed to load parent record, %v", err)
 	}
 
-	new_id, err := id_provider.NewID()
+	new_id, err := id_provider.NewID(ctx)
 
 	if err != nil {
 		log.Fatalf("Failed to create new ID, %v", err)
