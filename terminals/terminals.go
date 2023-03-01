@@ -4,6 +4,7 @@ package terminals
 import (
 	"context"
 	"fmt"
+
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 

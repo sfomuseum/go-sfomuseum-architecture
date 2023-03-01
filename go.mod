@@ -5,19 +5,19 @@ go 1.18
 require (
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/go-sqlite v0.2.2
-	github.com/paulmach/orb v0.7.1
+	github.com/paulmach/orb v0.9.0
 	github.com/sfomuseum/go-sfomuseum-writer/v3 v3.0.0
 	github.com/tidwall/gjson v1.14.4
 	github.com/whosonfirst/go-reader v1.0.2
-	github.com/whosonfirst/go-whosonfirst-export/v2 v2.6.1
-	github.com/whosonfirst/go-whosonfirst-feature v0.0.25
+	github.com/whosonfirst/go-whosonfirst-export/v2 v2.7.0
+	github.com/whosonfirst/go-whosonfirst-feature v0.0.26
 	github.com/whosonfirst/go-whosonfirst-id v1.2.0
 	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.3.1
 	github.com/whosonfirst/go-whosonfirst-reader v1.0.1
 	github.com/whosonfirst/go-whosonfirst-sqlite-features v0.10.1
 	github.com/whosonfirst/go-whosonfirst-sqlite-features-index v1.5.1
 	github.com/whosonfirst/go-whosonfirst-sqlite-index/v3 v3.0.0
-	github.com/whosonfirst/go-whosonfirst-uri v1.2.0
+	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
 	github.com/whosonfirst/go-writer/v3 v3.1.0
 )
 
@@ -53,5 +53,6 @@ require (
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.3 // indirect
 	github.com/whosonfirst/go-whosonfirst-writer/v3 v3.0.0 // indirect
 	github.com/whosonfirst/walk v0.0.1 // indirect
+	go.mongodb.org/mongo-driver v1.11.1 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 )

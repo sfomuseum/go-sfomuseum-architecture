@@ -1,11 +1,14 @@
 // supersede-gallery is a command line tool to clone and supersede an existing gallery record assigning
 // updated parent and hierarchy information at the same time. For example:
-// 	$> ./bin/supersede-gallery -architecture-reader-uri repo:///usr/local/build/collection/sfomuseum-data-architecture/ -gallery-id 1763595133 -parent-id 1763588365
+//
+//	$> ./bin/supersede-gallery -architecture-reader-uri repo:///usr/local/build/collection/sfomuseum-data-architecture/ -gallery-id 1763595133 -parent-id 1763588365
 package main
 
 import (
 	"context"
 	"flag"
+	"log"
+
 	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v3"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -13,7 +16,6 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-id"
 	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 	"github.com/whosonfirst/go-writer/v3"
-	"log"
 )
 
 func main() {

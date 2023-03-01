@@ -2,8 +2,9 @@ package terminals
 
 import (
 	"context"
-	"github.com/sfomuseum/go-sfomuseum-architecture"
 	"testing"
+
+	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
 func TestTerminalsLookup(t *testing.T) {

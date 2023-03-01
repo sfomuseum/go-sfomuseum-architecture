@@ -3,11 +3,12 @@ package gates
 import (
 	"context"
 	"fmt"
+	"io"
+	"sync"
+
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator"
 	"github.com/whosonfirst/go-whosonfirst-uri"
-	"io"
-	"sync"
 )
 
 // CompileGatesData will generate a list of `Gate` struct to be used as the source data for an `SFOMuseumLookup` instance.

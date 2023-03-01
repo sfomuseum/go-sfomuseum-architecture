@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"github.com/sfomuseum/go-sfomuseum-architecture/campus"
 	"io"
 	"log"
 	"os"
+
+	"github.com/sfomuseum/go-sfomuseum-architecture/campus"
 )
 
 func main() {

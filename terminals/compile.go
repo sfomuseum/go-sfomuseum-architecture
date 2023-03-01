@@ -3,13 +3,14 @@ package terminals
 import (
 	"context"
 	"fmt"
+	"io"
+	"strings"
+	"sync"
+
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-iterate/v2/iterator"
 	"github.com/whosonfirst/go-whosonfirst-uri"
-	"io"
-	"strings"
-	"sync"
 )
 
 // CompileTerminalsData will generate a list of `Terminal` struct to be used as the source data for an `SFOMuseumLookup` instance.

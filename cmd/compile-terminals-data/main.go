@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/sfomuseum/go-sfomuseum-architecture/terminals"
 	"io"
 	"log"
 	"os"
+
+	"github.com/sfomuseum/go-sfomuseum-architecture/terminals"
 )
 
 func main() {

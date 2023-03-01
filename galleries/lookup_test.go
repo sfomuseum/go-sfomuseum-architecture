@@ -2,8 +2,9 @@ package galleries
 
 import (
 	"context"
-	"github.com/sfomuseum/go-sfomuseum-architecture"
 	"testing"
+
+	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
 func TestGalleriesLookup(t *testing.T) {
@@ -21,7 +22,7 @@ func TestGalleriesLookup(t *testing.T) {
 	*/
 
 	wofid_tests := map[string]int64{
-		"2D": 1729813699, // 2020~-2021-05-25 2D Sky Terrace Platform
+		"2D": 1745882459, // 2D Sky Terrace Platform
 	}
 
 	ctx := context.Background()
