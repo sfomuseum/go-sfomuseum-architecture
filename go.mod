@@ -12,7 +12,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-export/v2 v2.7.0
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.26
 	github.com/whosonfirst/go-whosonfirst-id v1.2.0
-	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.3.1
+	github.com/whosonfirst/go-whosonfirst-iterate/v2 v2.3.2
 	github.com/whosonfirst/go-whosonfirst-reader v1.0.1
 	github.com/whosonfirst/go-whosonfirst-sqlite-features v0.10.1
 	github.com/whosonfirst/go-whosonfirst-sqlite-features-index v1.5.1
@@ -45,14 +45,14 @@ require (
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/whosonfirst/go-ioutil v1.0.2 // indirect
 	github.com/whosonfirst/go-rfc-5646 v0.1.0 // indirect
-	github.com/whosonfirst/go-whosonfirst-crawl v0.2.1 // indirect
+	github.com/whosonfirst/go-whosonfirst-crawl v0.2.2 // indirect
 	github.com/whosonfirst/go-whosonfirst-flags v0.4.4 // indirect
 	github.com/whosonfirst/go-whosonfirst-format v0.4.1 // indirect
 	github.com/whosonfirst/go-whosonfirst-names v0.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-sources v0.1.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.3 // indirect
 	github.com/whosonfirst/go-whosonfirst-writer/v3 v3.0.0 // indirect
-	github.com/whosonfirst/walk v0.0.1 // indirect
+	github.com/whosonfirst/walk v0.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.11.1 // indirect
 	go.uber.org/ratelimit v0.2.0 // indirect
 )
