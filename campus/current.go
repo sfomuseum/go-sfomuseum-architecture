@@ -31,13 +31,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/aaronland/go-sqlite"
 	aa_database "github.com/aaronland/go-sqlite/database"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
-	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
-	"log"
+	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"	
 )
 
 const FIRST_SFO int64 = 1159396329
