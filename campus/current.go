@@ -98,9 +98,9 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 		return nil, fmt.Errorf("Failed to find any child records (terminals) for %d, %v", sfo_id, err)
 	}
 
-	terminals := make([]*Terminal, len(terminal_ids))
+	terminals := make([]*Terminal, 0)
 
-	for idx, t_id := range terminal_ids {
+	for _, t_id := range terminal_ids {
 
 		commonareas, err := findCommonAreas(ctx, db, t_id)
 
@@ -118,6 +118,10 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load feature for %d, %w", t_id, err)
+		}
+
+		if t_body == nil {
+			continue
 		}
 
 		var sfoid string
@@ -150,7 +154,11 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 			}
 		}
 
-		slog.Info("Add terminal", "parent id", sfoid, "id", t_id)
+		name_rsp := gjson.GetBytes(t_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(t_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(t_body, "properties.edtf:cessation")
+
+		slog.Info("Add terminal", "sfo id", sfoid, "id", t_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		terminal := &Terminal{
 			WhosOnFirstId: t_id,
@@ -165,7 +173,7 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 			terminal.BoardingAreas = boardingareas
 		}
 
-		terminals[idx] = terminal
+		terminals = append(terminals, terminal)
 	}
 
 	return terminals, nil
@@ -181,9 +189,9 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 		return nil, fmt.Errorf("Failed to find any child records (observation decks) for %d, %v", t_id, err)
 	}
 
-	decks := make([]*ObservationDeck, len(deck_ids))
+	decks := make([]*ObservationDeck, 0)
 
-	for idx, d_id := range deck_ids {
+	for _, d_id := range deck_ids {
 
 		galleries, err := findGalleries(ctx, db, d_id)
 
@@ -203,6 +211,10 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 			return nil, fmt.Errorf("Failed to load feature for observation deck %d, %w", d_id, err)
 		}
 
+		if d_body == nil {
+			continue
+		}
+
 		var sfoid string
 
 		rsp := gjson.GetBytes(d_body, "properties.sfo:id")
@@ -213,7 +225,11 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 
 		sfoid = rsp.String()
 
-		slog.Info("Add observation deck", "sfo id", sfoid, "parent id", t_id, "id", d_id)
+		name_rsp := gjson.GetBytes(d_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(d_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(d_body, "properties.edtf:cessation")
+
+		slog.Info("Add observation deck", "sfo id", sfoid, "parent id", t_id, "id", d_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		deck := &ObservationDeck{
 			WhosOnFirstId: d_id,
@@ -228,7 +244,7 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 			deck.PublicArt = publicart
 		}
 
-		decks[idx] = deck
+		decks = append(decks, deck)
 	}
 
 	return decks, nil
@@ -244,9 +260,9 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 		return nil, fmt.Errorf("Failed to find any child records (common areas) for %d, %v", parent_id, err)
 	}
 
-	commonareas := make([]*CommonArea, len(commonarea_ids))
+	commonareas := make([]*CommonArea, 0)
 
-	for idx, c_id := range commonarea_ids {
+	for _, c_id := range commonarea_ids {
 
 		gates, err := findGates(ctx, db, c_id)
 
@@ -284,6 +300,10 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 			return nil, fmt.Errorf("Failed to load feature %d, %w", c_id, err)
 		}
 
+		if c_body == nil {
+			continue
+		}
+
 		var sfoid string
 
 		rsp := gjson.GetBytes(c_body, "properties.sfo:id")
@@ -314,6 +334,12 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 			}
 		}
 
+		name_rsp := gjson.GetBytes(c_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(c_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(c_body, "properties.edtf:cessation")
+
+		slog.Info("Add common area", "sfo id", sfoid, "id", c_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
 		area := &CommonArea{
 			WhosOnFirstId: c_id,
 			SFOId:         sfoid,
@@ -339,7 +365,7 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 			area.ObservationDecks = observation_decks
 		}
 
-		commonareas[idx] = area
+		commonareas = append(commonareas, area)
 	}
 
 	return commonareas, nil
@@ -355,9 +381,9 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 		return nil, fmt.Errorf("Failed to find any child records (boarding areas areas) for %d, %v", id, err)
 	}
 
-	boardingareas := make([]*BoardingArea, len(boardingarea_ids))
+	boardingareas := make([]*BoardingArea, 0)
 
-	for idx, b_id := range boardingarea_ids {
+	for _, b_id := range boardingarea_ids {
 
 		gates, err := findGates(ctx, db, b_id)
 
@@ -395,6 +421,10 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			return nil, fmt.Errorf("Failed to load feature for %d, %w", b_id, err)
 		}
 
+		if b_body == nil {
+			continue
+		}
+
 		var sfoid string
 
 		rsp := gjson.GetBytes(b_body, "properties.sfo:id")
@@ -413,6 +443,12 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 
 			sfoid = rsp.String()
 		}
+
+		name_rsp := gjson.GetBytes(b_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(b_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(b_body, "properties.edtf:cessation")
+
+		slog.Info("Add boardinarea", "sfo id", sfoid, "id", b_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		area := &BoardingArea{
 			WhosOnFirstId: b_id,
@@ -439,7 +475,7 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			area.ObservationDecks = observation_decks
 		}
 
-		boardingareas[idx] = area
+		boardingareas = append(boardingareas, area)
 	}
 
 	return boardingareas, nil
@@ -456,14 +492,18 @@ func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error
 		return nil, fmt.Errorf("Failed to find any child records (gates) for %d, %w", parent_id, err)
 	}
 
-	gates := make([]*Gate, len(gate_ids))
+	gates := make([]*Gate, 0)
 
-	for idx, g_id := range gate_ids {
+	for _, g_id := range gate_ids {
 
 		g_body, err := loadFeatureWithDBAndChecks(ctx, db, g_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load feature for date %d, %w", g_id, err)
+		}
+
+		if g_body == nil {
+			continue
 		}
 
 		var sfoid string
@@ -485,14 +525,18 @@ func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error
 			sfoid = rsp.String()
 		}
 
-		slog.Info("Add gate", "sfo id", sfoid, "parent_id", parent_id, "id", g_id)
+		name_rsp := gjson.GetBytes(g_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(g_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(g_body, "properties.edtf:cessation")
+
+		slog.Info("Add gate", "sfo id", sfoid, "parent_id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		g := &Gate{
 			WhosOnFirstId: g_id,
 			SFOId:         sfoid,
 		}
 
-		gates[idx] = g
+		gates = append(gates, g)
 	}
 
 	return gates, nil
@@ -508,14 +552,18 @@ func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Check
 		return nil, fmt.Errorf("Failed to find any child records (checkpoints) for %d, %w", parent_id, err)
 	}
 
-	checkpoints := make([]*Checkpoint, len(checkpoint_ids))
+	checkpoints := make([]*Checkpoint, 0)
 
-	for idx, cp_id := range checkpoint_ids {
+	for _, cp_id := range checkpoint_ids {
 
 		cp_body, err := loadFeatureWithDBAndChecks(ctx, db, cp_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load feature for %d, %w", cp_id, err)
+		}
+
+		if cp_body == nil {
+			continue
 		}
 
 		var sfoid string
@@ -528,14 +576,18 @@ func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Check
 
 		sfoid = rsp.String()
 
-		slog.Info("Add checkpoint", "sfo id", sfoid, "parent id", parent_id, "id", cp_id)
+		name_rsp := gjson.GetBytes(cp_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(cp_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(cp_body, "properties.edtf:cessation")
+
+		slog.Info("Add checkpoint", "sfo id", sfoid, "parent id", parent_id, "id", cp_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		cp := &Checkpoint{
 			WhosOnFirstId: cp_id,
 			SFOId:         sfoid,
 		}
 
-		checkpoints[idx] = cp
+		checkpoints = append(checkpoints, cp)
 	}
 
 	return checkpoints, nil
@@ -551,14 +603,18 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 		return nil, fmt.Errorf("Failed to find any child records (galleries) for %d, %w", parent_id, err)
 	}
 
-	galleries := make([]*Gallery, len(gallery_ids))
+	galleries := make([]*Gallery, 0)
 
-	for idx, g_id := range gallery_ids {
+	for _, g_id := range gallery_ids {
 
 		g_body, err := loadFeatureWithDBAndChecks(ctx, db, g_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed load feature for gallery %d, %w", g_id, err)
+		}
+
+		if g_body == nil {
+			continue
 		}
 
 		var sfomid string
@@ -580,14 +636,18 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 			sfomid = rsp.String()
 		}
 
-		slog.Info("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id)
+		name_rsp := gjson.GetBytes(g_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(g_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(g_body, "properties.edtf:cessation")
+
+		slog.Info("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		g := &Gallery{
 			WhosOnFirstId: g_id,
 			SFOId:         sfomid,
 		}
 
-		galleries[idx] = g
+		galleries = append(galleries, g)
 	}
 
 	return galleries, nil
@@ -603,14 +663,18 @@ func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicA
 		return nil, fmt.Errorf("Failed to find any child records (public art) for %d, %w", parent_id, err)
 	}
 
-	publicarts := make([]*PublicArt, len(publicart_ids))
+	publicarts := make([]*PublicArt, 0)
 
-	for idx, p_id := range publicart_ids {
+	for _, p_id := range publicart_ids {
 
 		p_body, err := loadFeatureWithDBAndChecks(ctx, db, p_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load feature for public art %d, %w", p_id, err)
+		}
+
+		if p_body == nil {
+			continue
 		}
 
 		var sfomid string
@@ -632,14 +696,18 @@ func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicA
 			sfomid = rsp.String()
 		}
 
-		slog.Info("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id)
+		name_rsp := gjson.GetBytes(p_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(p_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(p_body, "properties.edtf:cessation")
 
-		g := &PublicArt{
+		slog.Info("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
+		pa := &PublicArt{
 			WhosOnFirstId: p_id,
 			SFOId:         sfomid,
 		}
 
-		publicarts[idx] = g
+		publicarts = append(publicarts, pa)
 	}
 
 	return publicarts, nil
@@ -745,6 +813,16 @@ func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]by
 		return nil, fmt.Errorf("Failed to load feature for record %d, %w", id, err)
 	}
 
+	name_rsp := gjson.GetBytes(body, "properties.wof:name")
+	inception_rsp := gjson.GetBytes(body, "properties.edtf:inception")
+	cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
+
+	deprecated_rsp := gjson.GetBytes(body, "properties.edtf:deprecated")
+
+	if deprecated_rsp.Exists() && deprecated_rsp.String() != "" {
+		return nil, nil
+	}
+
 	current_rsp := gjson.GetBytes(body, "properties.mz:is_current")
 
 	if !current_rsp.Exists() {
@@ -752,7 +830,8 @@ func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]by
 	}
 
 	if current_rsp.Int() != 1 {
-		return nil, fmt.Errorf("Unexpected mz:is_current property (%d) for record %d", current_rsp.Int(), id)
+		slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		return nil, nil
 	}
 
 	return body, nil
