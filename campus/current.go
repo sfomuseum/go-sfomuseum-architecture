@@ -29,18 +29,19 @@ package campus
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/aaronland/go-sqlite"
 	aa_database "github.com/aaronland/go-sqlite/database"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
-	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"	
+	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
 )
 
+// SFO Terminal Complex (1954~ to 1963~)
+// https://millsfield.sfomuseum.org/buildings/1159396329/
 const FIRST_SFO int64 = 1159396329
 
 // MostRecentComplexWithIterator will return a `Complex` instance representing the most recent relationships of the SFO terminal complex
@@ -52,13 +53,13 @@ func MostRecentComplexWithIterator(ctx context.Context, iterator_uri string, pat
 	db, err := newWhosOnFirstDatabaseFromIterator(ctx, dsn, iterator_uri, paths...)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to derive new WOF database, %w", err)
 	}
 
 	sql_db, err := db.Conn()
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create database connection, %w", err)
 	}
 
 	return FindMostRecentComplexWithDatabase(ctx, sql_db)
@@ -69,13 +70,13 @@ func FindMostRecentComplexWithDatabase(ctx context.Context, db *sql.DB) (*Comple
 	sfo_id, err := findMostRecentComplexID(ctx, db, FIRST_SFO)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to derive most recent complex ID, %w", err)
 	}
 
 	terminals, err := findTerminals(ctx, db, sfo_id)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to derive terminals for complex %d, %w", sfo_id, err)
 	}
 
 	c := &Complex{
@@ -89,10 +90,12 @@ func FindMostRecentComplexWithDatabase(ctx context.Context, db *sql.DB) (*Comple
 
 func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, error) {
 
+	slog.Info("Find terminals", "parent id", sfo_id)
+
 	terminal_ids, err := findChildIDs(ctx, db, sfo_id, "terminal")
 
 	if err != nil {
-		log.Fatalf("Failed to find terminals, %v", err)
+		return nil, fmt.Errorf("Failed to find any child records (terminals) for %d, %v", sfo_id, err)
 	}
 
 	terminals := make([]*Terminal, len(terminal_ids))
@@ -102,19 +105,19 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 		commonareas, err := findCommonAreas(ctx, db, t_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive common areas for %d, %w", t_id, err)
 		}
 
 		boardingareas, err := findBoardingAreas(ctx, db, t_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive boarding areas for %d, %w", t_id, err)
 		}
 
-		t_body, err := loadFeatureWithDB(ctx, db, t_id)
+		t_body, err := loadFeatureWithDBAndChecks(ctx, db, t_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for %d, %w", t_id, err)
 		}
 
 		var sfoid string
@@ -130,7 +133,7 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 			rsp := gjson.GetBytes(t_body, "properties.sfomuseum:terminal_id")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Unable to find terminal_id")
+				return nil, fmt.Errorf("Missing properties.sfomuseum:terminal_id property for terminal %d", t_id)
 			}
 
 			switch rsp.String() {
@@ -143,9 +146,11 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 			case "T3":
 				sfoid = "400" // gis.BUILDING_T3
 			default:
-				return nil, fmt.Errorf("Unrecognized terminal_id '%s'", rsp.String())
+				return nil, fmt.Errorf("Unrecognized terminal_id '%s' for %d", rsp.String(), t_id)
 			}
 		}
+
+		slog.Info("Add terminal", "parent id", sfoid, "id", t_id)
 
 		terminal := &Terminal{
 			WhosOnFirstId: t_id,
@@ -168,10 +173,12 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 
 func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*ObservationDeck, error) {
 
+	slog.Info("Find observation decks", "parent id", t_id)
+
 	deck_ids, err := findChildIDs(ctx, db, t_id, "observationdeck")
 
 	if err != nil {
-		log.Fatalf("Failed to find observation decks, %v", err)
+		return nil, fmt.Errorf("Failed to find any child records (observation decks) for %d, %v", t_id, err)
 	}
 
 	decks := make([]*ObservationDeck, len(deck_ids))
@@ -181,19 +188,19 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 		galleries, err := findGalleries(ctx, db, d_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive galleries for observation deck %d, %w", d_id, err)
 		}
 
 		publicart, err := findPublicArt(ctx, db, d_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive public art for observation deck %d, %w", d_id, err)
 		}
 
-		d_body, err := loadFeatureWithDB(ctx, db, d_id)
+		d_body, err := loadFeatureWithDBAndChecks(ctx, db, d_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for observation deck %d, %w", d_id, err)
 		}
 
 		var sfoid string
@@ -201,10 +208,12 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 		rsp := gjson.GetBytes(d_body, "properties.sfo:id")
 
 		if !rsp.Exists() {
-			return nil, errors.New("Unable to find sfo:id")
+			return nil, fmt.Errorf("Unable to find sfo:id for WOF record, %d", d_id)
 		}
 
 		sfoid = rsp.String()
+
+		slog.Info("Add observation deck", "sfo id", sfoid, "parent id", t_id, "id", d_id)
 
 		deck := &ObservationDeck{
 			WhosOnFirstId: d_id,
@@ -225,12 +234,14 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 	return decks, nil
 }
 
-func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea, error) {
+func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*CommonArea, error) {
 
-	commonarea_ids, err := findChildIDs(ctx, db, t_id, "commonarea")
+	slog.Info("Find common areas", "parent", parent_id)
+
+	commonarea_ids, err := findChildIDs(ctx, db, parent_id, "commonarea")
 
 	if err != nil {
-		log.Fatalf("Failed to find common areas, %v", err)
+		return nil, fmt.Errorf("Failed to find any child records (common areas) for %d, %v", parent_id, err)
 	}
 
 	commonareas := make([]*CommonArea, len(commonarea_ids))
@@ -240,37 +251,37 @@ func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea
 		gates, err := findGates(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive gates for common area %d, %w", c_id, err)
 		}
 
 		checkpoints, err := findCheckpoints(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive gates for check points %d, %w", c_id, err)
 		}
 
 		galleries, err := findGalleries(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive gates for galleries %d, %w", c_id, err)
 		}
 
 		observation_decks, err := findObservationDecks(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive observation decks for galleries %d, %w", c_id, err)
 		}
 
 		publicart, err := findPublicArt(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive public art for galleries %d, %w", c_id, err)
 		}
 
-		c_body, err := loadFeatureWithDB(ctx, db, c_id)
+		c_body, err := loadFeatureWithDBAndChecks(ctx, db, c_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature %d, %w", c_id, err)
 		}
 
 		var sfoid string
@@ -286,7 +297,7 @@ func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea
 			rsp := gjson.GetBytes(c_body, "properties.sfo:building_id")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Unable to find sfo:building_id")
+				return nil, fmt.Errorf("Unable to find sfo:building_id for %d", c_id)
 			}
 
 			switch rsp.String() {
@@ -299,7 +310,7 @@ func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea
 			case "T3", "400":
 				sfoid = "400CAD" // gis.COMMONAREA_T3_DEPARTURES
 			default:
-				return nil, fmt.Errorf("Unrecognized sfo:id '%s'", rsp.String())
+				return nil, fmt.Errorf("Unrecognized sfo:id '%s' for %d", rsp.String(), c_id)
 			}
 		}
 
@@ -336,10 +347,12 @@ func findCommonAreas(ctx context.Context, db *sql.DB, t_id int64) ([]*CommonArea
 
 func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingArea, error) {
 
+	slog.Info("Find boarding areas", "parent", id)
+
 	boardingarea_ids, err := findChildIDs(ctx, db, id, "boardingarea")
 
 	if err != nil {
-		log.Fatalf("Failed to find boarding areas, %v", err)
+		return nil, fmt.Errorf("Failed to find any child records (boarding areas areas) for %d, %v", id, err)
 	}
 
 	boardingareas := make([]*BoardingArea, len(boardingarea_ids))
@@ -349,37 +362,37 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 		gates, err := findGates(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive gates for boarding area %d, %w", b_id, err)
 		}
 
 		checkpoints, err := findCheckpoints(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive check points for boarding area %d, %w", b_id, err)
 		}
 
 		galleries, err := findGalleries(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive galleries for boarding area %d, %w", b_id, err)
 		}
 
 		publicart, err := findPublicArt(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive public art for boarding area %d, %w", b_id, err)
 		}
 
 		observation_decks, err := findObservationDecks(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to derive observation decks for boarding area %d, %w", b_id, err)
 		}
 
-		b_body, err := loadFeatureWithDB(ctx, db, b_id)
+		b_body, err := loadFeatureWithDBAndChecks(ctx, db, b_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for %d, %w", b_id, err)
 		}
 
 		var sfoid string
@@ -395,7 +408,7 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			rsp := gjson.GetBytes(b_body, "properties.sfo:building_id")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Missing sfo:building_id")
+				return nil, fmt.Errorf("Missing sfo:building_id for boarding area %d", b_id)
 			}
 
 			sfoid = rsp.String()
@@ -433,22 +446,24 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 
 }
 
-func findGates(ctx context.Context, db *sql.DB, id int64) ([]*Gate, error) {
+func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error) {
 
-	gate_ids, err := findChildIDs(ctx, db, id, "gate")
+	slog.Info("Find gates", "parent", parent_id)
+
+	gate_ids, err := findChildIDs(ctx, db, parent_id, "gate")
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to find any child records (gates) for %d, %w", parent_id, err)
 	}
 
 	gates := make([]*Gate, len(gate_ids))
 
 	for idx, g_id := range gate_ids {
 
-		g_body, err := loadFeatureWithDB(ctx, db, g_id)
+		g_body, err := loadFeatureWithDBAndChecks(ctx, db, g_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for date %d, %w", g_id, err)
 		}
 
 		var sfoid string
@@ -464,11 +479,13 @@ func findGates(ctx context.Context, db *sql.DB, id int64) ([]*Gate, error) {
 			rsp := gjson.GetBytes(g_body, "properties.wof:name")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Missing wof:name")
+				return nil, fmt.Errorf("Missing wof:name for %d", g_id)
 			}
 
 			sfoid = rsp.String()
 		}
+
+		slog.Info("Add gate", "sfo id", sfoid, "parent_id", parent_id, "id", g_id)
 
 		g := &Gate{
 			WhosOnFirstId: g_id,
@@ -481,22 +498,24 @@ func findGates(ctx context.Context, db *sql.DB, id int64) ([]*Gate, error) {
 	return gates, nil
 }
 
-func findCheckpoints(ctx context.Context, db *sql.DB, id int64) ([]*Checkpoint, error) {
+func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Checkpoint, error) {
 
-	checkpoint_ids, err := findChildIDs(ctx, db, id, "checkpoint")
+	slog.Info("Find check points", "parent id", parent_id)
+
+	checkpoint_ids, err := findChildIDs(ctx, db, parent_id, "checkpoint")
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to find any child records (checkpoints) for %d, %w", parent_id, err)
 	}
 
 	checkpoints := make([]*Checkpoint, len(checkpoint_ids))
 
 	for idx, cp_id := range checkpoint_ids {
 
-		cp_body, err := loadFeatureWithDB(ctx, db, cp_id)
+		cp_body, err := loadFeatureWithDBAndChecks(ctx, db, cp_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for %d, %w", cp_id, err)
 		}
 
 		var sfoid string
@@ -504,10 +523,12 @@ func findCheckpoints(ctx context.Context, db *sql.DB, id int64) ([]*Checkpoint, 
 		rsp := gjson.GetBytes(cp_body, "properties.sfo:id")
 
 		if !rsp.Exists() {
-			return nil, errors.New("Missing sfo:id")
+			return nil, fmt.Errorf("Missing sfo:id for %d", cp_id)
 		}
 
 		sfoid = rsp.String()
+
+		slog.Info("Add checkpoint", "sfo id", sfoid, "parent id", parent_id, "id", cp_id)
 
 		cp := &Checkpoint{
 			WhosOnFirstId: cp_id,
@@ -522,20 +543,22 @@ func findCheckpoints(ctx context.Context, db *sql.DB, id int64) ([]*Checkpoint, 
 
 func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery, error) {
 
+	slog.Info("Find galleries", "parent id", parent_id)
+
 	gallery_ids, err := findChildIDs(ctx, db, parent_id, "gallery")
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to find any child records (galleries) for %d, %w", parent_id, err)
 	}
 
 	galleries := make([]*Gallery, len(gallery_ids))
 
 	for idx, g_id := range gallery_ids {
 
-		g_body, err := loadFeatureWithDB(ctx, db, g_id)
+		g_body, err := loadFeatureWithDBAndChecks(ctx, db, g_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed load feature for gallery %d, %w", g_id, err)
 		}
 
 		var sfomid string
@@ -551,11 +574,13 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 			rsp := gjson.GetBytes(g_body, "properties.sfomuseum:gallery_id")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Missing sfomuseum:gallery_id")
+				return nil, fmt.Errorf("Missing sfomuseum:gallery_id property for gallery %d", g_id)
 			}
 
 			sfomid = rsp.String()
 		}
+
+		slog.Info("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id)
 
 		g := &Gallery{
 			WhosOnFirstId: g_id,
@@ -570,20 +595,22 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 
 func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicArt, error) {
 
+	slog.Info("Find public art", "parent id", parent_id)
+
 	publicart_ids, err := findChildIDs(ctx, db, parent_id, "publicart")
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to find any child records (public art) for %d, %w", parent_id, err)
 	}
 
 	publicarts := make([]*PublicArt, len(publicart_ids))
 
 	for idx, p_id := range publicart_ids {
 
-		p_body, err := loadFeatureWithDB(ctx, db, p_id)
+		p_body, err := loadFeatureWithDBAndChecks(ctx, db, p_id)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Failed to load feature for public art %d, %w", p_id, err)
 		}
 
 		var sfomid string
@@ -599,11 +626,13 @@ func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicA
 			rsp := gjson.GetBytes(p_body, "properties.sfomuseum:object_id")
 
 			if !rsp.Exists() {
-				return nil, errors.New("Missing sfomuseum:object_id")
+				return nil, fmt.Errorf("Missing sfomuseum:object_id property for public art %d, %w", p_id, err)
 			}
 
 			sfomid = rsp.String()
 		}
+
+		slog.Info("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id)
 
 		g := &PublicArt{
 			WhosOnFirstId: p_id,
@@ -640,7 +669,7 @@ func findMostRecentComplexID(ctx context.Context, db *sql.DB, id int64) (int64, 
 		err := rows.Scan(&superseded_by)
 
 		if err != nil {
-			return -1, err
+			return -1, fmt.Errorf("Failed to scan row, %w", err)
 		}
 
 		possible = append(possible, superseded_by)
@@ -706,6 +735,27 @@ func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype st
 	}
 
 	return children, nil
+}
+
+func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
+
+	body, err := loadFeatureWithDB(ctx, db, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load feature for record %d, %w", id, err)
+	}
+
+	current_rsp := gjson.GetBytes(body, "properties.mz:is_current")
+
+	if !current_rsp.Exists() {
+		return nil, fmt.Errorf("Missing properties.mz:is_current property for record %d", id)
+	}
+
+	if current_rsp.Int() != 1 {
+		return nil, fmt.Errorf("Unexpected mz:is_current property (%d) for record %d", current_rsp.Int(), id)
+	}
+
+	return body, nil
 }
 
 func loadFeatureWithDB(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
