@@ -2,11 +2,14 @@ package campus
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/paulmach/orb/geojson"
 	"github.com/whosonfirst/go-reader"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 )
 
-func ToGeoJSON(ctx context.Context, c *Complex, r reader.Reader) error {
+func ComplexToGeoJSONLayers(ctx context.Context, c *Complex, r reader.Reader) (map[string]*geojson.FeatureCollection, error) {
 
 	terminal_ids := make([]int64, 0)
 	boardingarea_ids := make([]int64, 0)
@@ -90,5 +93,42 @@ func ToGeoJSON(ctx context.Context, c *Complex, r reader.Reader) error {
 		}
 	}
 
-	return nil
+	feature_ids := map[string][]int64{
+		"terminals":        terminal_ids,
+		"boardingareas":    boardingarea_ids,
+		"commonareas":      commonarea_ids,
+		"observationdecks": observationdeck_ids,
+		"gates":            gate_ids,
+		"checkpoints":      checkpoint_ids,
+		"galleries":        gallery_ids,
+		"publicart":        publicart_ids,
+	}
+
+	features := make(map[string]*geojson.FeatureCollection)
+
+	for k, ids := range feature_ids {
+
+		fc := geojson.NewFeatureCollection()
+
+		for _, id := range ids {
+
+			body, err := wof_reader.LoadBytes(ctx, r, id)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read %d, %w", id, err)
+			}
+
+			f, err := geojson.UnmarshalFeature(body)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to unmarshal %d, %w", id, err)
+			}
+
+			fc.Append(f)
+		}
+
+		features[k] = fc
+	}
+
+	return features, nil
 }
