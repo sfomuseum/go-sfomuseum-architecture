@@ -3,12 +3,11 @@ package campus
 
 // type Campus is a lightweight data structure to represent the SFO campus with pointers its descendants.
 type Campus struct {
-	WhosOnFirstId int64     `json:"id"`
-	SFOId         string    `json:"sfo:id"`
-	Complex       *Complex  `json:"complex"`
-	Garages       []*Garage `json:"garages"`
-	// Buildings []*Building `json:"buildings,omitempty"`
-	PublicArt []*PublicArt `json:"buildings,omitempty"`
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	Complex       *Complex     `json:"complex"`
+	Garages       []*Garage    `json:"garages"`
+	PublicArt     []*PublicArt `json:"buildings,omitempty"`
 }
 
 // type Garage is a lightweight data structure to represent garages at SFO with pointers its descendants.
