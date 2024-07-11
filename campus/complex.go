@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log/slog"
+	"strings"
 
 	"github.com/whosonfirst/go-reader"
-	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 )
 
 func (c *Complex) AsJSON(ctx context.Context, wr io.Writer) error {
@@ -18,126 +16,18 @@ func (c *Complex) AsJSON(ctx context.Context, wr io.Writer) error {
 	return enc.Encode(c)
 }
 
-func (c *Complex) AsTree(ctx context.Context, r reader.Reader, wr io.Writer) error {
+func (c *Complex) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
-	name := func(id int64) string {
-
-		body, err := wof_reader.LoadBytes(ctx, r, id)
-
-		if err != nil {
-			slog.Warn("Failed to read bytes for ID", "id", id, "error", err)
-			return ""
-		}
-
-		name, err := properties.Name(body)
-
-		if err != nil {
-			slog.Warn("Failed to read name", "id", id, "error", err)
-			return ""
-		}
-
-		return name
-	}
+	c_id := c.WhosOnFirstId
+	fmt.Fprintf(wr, "%s (complex) %d %s\n", strings.Repeat("\t", indent), c_id, name(ctx, r, c_id))
 
 	for _, t := range c.Terminals {
 
-		t_id := t.WhosOnFirstId
-		fmt.Fprintf(wr, "%d %s\n", t_id, name(t_id))
+		err := t.AsTree(ctx, r, wr, indent+1)
 
-		for _, b := range t.BoardingAreas {
-
-			b_id := b.WhosOnFirstId
-			fmt.Fprintf(wr, "\t%d %s\n", b_id, name(b_id))
-
-			for _, g := range b.Galleries {
-				g_id := g.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", g_id, name(g_id))
-			}
-
-			for _, p := range b.PublicArt {
-				p_id := p.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", p_id, name(p_id))
-			}
-
-			for _, o := range b.ObservationDecks {
-				o_id := o.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", o_id, name(o_id))
-
-				for _, g := range o.Galleries {
-					g_id := g.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", g_id, name(g_id))
-				}
-
-				for _, p := range o.PublicArt {
-					p_id := p.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", p_id, name(p_id))
-				}
-			}
-
-			for _, m := range b.Museums {
-				m_id := m.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", m_id, name(m_id))
-
-				for _, g := range m.Galleries {
-					g_id := g.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", g_id, name(g_id))
-				}
-
-				for _, p := range m.PublicArt {
-					p_id := p.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", p_id, name(p_id))
-				}
-			}
-
+		if err != nil {
+			return fmt.Errorf("Failed to encode Terminal as tree, %w", err)
 		}
-
-		for _, c := range t.CommonAreas {
-
-			c_id := c.WhosOnFirstId
-			fmt.Fprintf(wr, "\t%d %s\n", c_id, name(c_id))
-
-			for _, g := range c.Galleries {
-				g_id := g.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", g_id, name(g_id))
-			}
-
-			for _, p := range c.PublicArt {
-				p_id := p.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", p_id, name(p_id))
-			}
-
-			for _, o := range c.ObservationDecks {
-				o_id := o.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", o_id, name(o_id))
-
-				for _, g := range o.Galleries {
-					g_id := g.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", g_id, name(g_id))
-				}
-
-				for _, p := range o.PublicArt {
-					p_id := p.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", p_id, name(p_id))
-				}
-			}
-
-			for _, m := range c.Museums {
-				m_id := m.WhosOnFirstId
-				fmt.Fprintf(wr, "\t\t%d %s\n", m_id, name(m_id))
-
-				for _, g := range m.Galleries {
-					g_id := g.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", g_id, name(g_id))
-				}
-
-				for _, p := range m.PublicArt {
-					p_id := p.WhosOnFirstId
-					fmt.Fprintf(wr, "\t\t\t%d %s\n", p_id, name(p_id))
-				}
-			}
-
-		}
-
 	}
 
 	return nil

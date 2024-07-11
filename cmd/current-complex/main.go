@@ -61,7 +61,7 @@ func main() {
 			log.Fatalf("Failed to create new reader, %v", err)
 		}
 
-		err = c.AsTree(ctx, r, wr)
+		err = c.AsTree(ctx, r, wr, 0)
 
 		if err != nil {
 			log.Fatalf("Failed to render complex as tree, %v", err)

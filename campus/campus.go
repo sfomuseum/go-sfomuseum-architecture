@@ -7,6 +7,7 @@ type Campus struct {
 	SFOId         string       `json:"sfo:id"`
 	Complex       *Complex     `json:"complex"`
 	Garages       []*Garage    `json:"garages"`
+	Hotels        []*Hotel     `json:"hotels"`
 	PublicArt     []*PublicArt `json:"buildings,omitempty"`
 }
 
@@ -17,19 +18,18 @@ type Garage struct {
 	PublicArt     []*PublicArt `json:"publicart,omitempty"`
 }
 
+// type Hotel is a lightweight data structure to represent garages at SFO with pointers its descendants.
+type Hotel struct {
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+}
+
 // type Complex is a lightweight data structure to represent the terminal complex at SFO with pointers its descendants.
 type Complex struct {
 	WhosOnFirstId int64       `json:"id"`
 	SFOId         string      `json:"sfo:id"`
 	Terminals     []*Terminal `json:"terminals"`
-}
-
-// type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
-type ObservationDeck struct {
-	WhosOnFirstId int64        `json:"id"`
-	SFOId         string       `json:"sfo:id"`
-	PublicArt     []*PublicArt `json:"publicart,omitempty"`
-	Galleries     []*Gallery   `json:"galleries,omitempty"`
 }
 
 // type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
@@ -62,6 +62,14 @@ type BoardingArea struct {
 	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
 	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"`
 	Museums          []*Museum          `json:"museums,omitempty"` // for example AML
+}
+
+// type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
+type ObservationDeck struct {
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+	Galleries     []*Gallery   `json:"galleries,omitempty"`
 }
 
 // type Museum is a lightweight data structure to represent dedicated Museum-related areas, distinct from galleries, at SFO  with pointers to its descendants.

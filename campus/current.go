@@ -74,14 +74,19 @@ func FindMostRecentComplexWithDatabase(ctx context.Context, db *sql.DB) (*Comple
 		return nil, fmt.Errorf("Failed to derive most recent complex ID, %w", err)
 	}
 
-	terminals, err := findTerminals(ctx, db, sfo_id)
+	return FindComplexWithDatabase(ctx, db, sfo_id)
+}
+
+func FindComplexWithDatabase(ctx context.Context, db *sql.DB, complex_id int64) (*Complex, error) {
+
+	terminals, err := findTerminals(ctx, db, complex_id)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to derive terminals for complex %d, %w", sfo_id, err)
+		return nil, fmt.Errorf("Failed to derive terminals for complex %d, %w", complex_id, err)
 	}
 
 	c := &Complex{
-		WhosOnFirstId: sfo_id,
+		WhosOnFirstId: complex_id,
 		SFOId:         "SFO",
 		Terminals:     terminals,
 	}
