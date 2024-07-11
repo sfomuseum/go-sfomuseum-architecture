@@ -1,14 +1,16 @@
-GOMOD=vendor
+GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
+LDFLAGS=-s -w
+
 
 cli:
 	@make cli-lookup
-	go build -mod $(GOMOD) -o bin/supersede-gallery cmd/supersede-gallery/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/supersede-gallery cmd/supersede-gallery/main.go
 
 cli-lookup:
-	go build -mod $(GOMOD) -o bin/lookup cmd/lookup/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" -o bin/lookup cmd/lookup/main.go
 
 cli-complex:
-	go build -mod $(GOMOD) --tags json1 -o bin/current-complex cmd/current-complex/main.go
+	go build -mod $(GOMOD) -ldflags="$(LDFLAGS)" --tags json1 -o bin/current-complex cmd/current-complex/main.go
 
 compile:
 	@make compile-gates
@@ -17,10 +19,10 @@ compile:
 	@make cli-lookup
 
 compile-gates:
-	go run -mod $(GOMOD) cmd/compile-gates-data/main.go
+	go run -mod $(GOMOD) -ldflags="$(LDFLAGS)" cmd/compile-gates-data/main.go
 
 compile-terminals:
-	go run -mod $(GOMOD) cmd/compile-terminals-data/main.go
+	go run -mod $(GOMOD) -ldflags="$(LDFLAGS)" cmd/compile-terminals-data/main.go
 
 compile-galleries:
-	go run -mod $(GOMOD) cmd/compile-galleries-data/main.go
+	go run -mod $(GOMOD) -ldflags="$(LDFLAGS)" cmd/compile-galleries-data/main.go
