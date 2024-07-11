@@ -2,10 +2,13 @@ package campus
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 
+	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
 )
 
@@ -69,5 +72,126 @@ func (b *BoardingArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer
 	}
 
 	return nil
+
+}
+
+func FindBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingArea, error) {
+
+	slog.Debug("Find boarding areas", "parent", id)
+
+	boardingarea_ids, err := findChildIDs(ctx, db, id, "boardingarea")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find any child records (boarding areas areas) for %d, %v", id, err)
+	}
+
+	boardingareas := make([]*BoardingArea, 0)
+
+	for _, b_id := range boardingarea_ids {
+
+		gates, err := FindGates(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive gates for boarding area %d, %w", b_id, err)
+		}
+
+		checkpoints, err := FindCheckpoints(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive check points for boarding area %d, %w", b_id, err)
+		}
+
+		galleries, err := FindGalleries(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive galleries for boarding area %d, %w", b_id, err)
+		}
+
+		publicart, err := FindPublicArt(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive public art for boarding area %d, %w", b_id, err)
+		}
+
+		observation_decks, err := FindObservationDecks(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive observation decks for boarding area %d, %w", b_id, err)
+		}
+
+		museums, err := FindMuseums(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive museums for boarding area %d, %w", b_id, err)
+		}
+
+		b_body, err := loadFeatureWithDBAndChecks(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load feature for %d, %w", b_id, err)
+		}
+
+		if b_body == nil {
+			continue
+		}
+
+		var sfoid string
+
+		rsp := gjson.GetBytes(b_body, "properties.sfo:id")
+
+		if rsp.Exists() {
+
+			sfoid = rsp.String()
+
+		} else {
+
+			rsp := gjson.GetBytes(b_body, "properties.sfo:building_id")
+
+			if !rsp.Exists() {
+				return nil, fmt.Errorf("Missing sfo:building_id for boarding area %d", b_id)
+			}
+
+			sfoid = rsp.String()
+		}
+
+		name_rsp := gjson.GetBytes(b_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(b_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(b_body, "properties.edtf:cessation")
+
+		slog.Debug("Add boardinarea", "sfo id", sfoid, "id", b_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
+		area := &BoardingArea{
+			WhosOnFirstId: b_id,
+			SFOId:         sfoid,
+		}
+
+		if len(gates) > 0 {
+			area.Gates = gates
+		}
+
+		if len(checkpoints) > 0 {
+			area.Checkpoints = checkpoints
+		}
+
+		if len(galleries) > 0 {
+			area.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			area.PublicArt = publicart
+		}
+
+		if len(observation_decks) > 0 {
+			area.ObservationDecks = observation_decks
+		}
+
+		if len(museums) > 0 {
+			area.Museums = museums
+		}
+
+		boardingareas = append(boardingareas, area)
+	}
+
+	return boardingareas, nil
 
 }

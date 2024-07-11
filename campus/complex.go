@@ -2,6 +2,7 @@ package campus
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -31,4 +32,21 @@ func (c *Complex) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, ind
 	}
 
 	return nil
+}
+
+func FindComplex(ctx context.Context, db *sql.DB, complex_id int64) (*Complex, error) {
+
+	terminals, err := FindTerminals(ctx, db, complex_id)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to derive terminals for complex %d, %w", complex_id, err)
+	}
+
+	c := &Complex{
+		WhosOnFirstId: complex_id,
+		SFOId:         "SFO",
+		Terminals:     terminals,
+	}
+
+	return c, nil
 }

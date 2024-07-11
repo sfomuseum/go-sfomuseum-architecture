@@ -2,10 +2,13 @@ package campus
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 
+	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
 )
 
@@ -34,4 +37,75 @@ func (m *Museum) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, inde
 
 	return nil
 
+}
+
+func FindMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, error) {
+
+	slog.Debug("Find museums", "parent id", parent_id)
+
+	museum_ids, err := findChildIDs(ctx, db, parent_id, "museum")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find any child records (museums) for %d, %v", parent_id, err)
+	}
+
+	museums := make([]*Museum, 0)
+
+	for _, m_id := range museum_ids {
+
+		galleries, err := FindGalleries(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive galleries for museum %d, %w", m_id, err)
+		}
+
+		publicart, err := FindPublicArt(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive public art for museum %d, %w", m_id, err)
+		}
+
+		m_body, err := loadFeatureWithDBAndChecks(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load feature for museum %d, %w", m_id, err)
+		}
+
+		if m_body == nil {
+			continue
+		}
+
+		var sfoid string
+
+		rsp := gjson.GetBytes(m_body, "properties.sfo:id")
+
+		if !rsp.Exists() {
+			return nil, fmt.Errorf("Unable to find sfo:id for WOF record, %d", m_id)
+		}
+
+		sfoid = rsp.String()
+
+		name_rsp := gjson.GetBytes(m_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(m_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(m_body, "properties.edtf:cessation")
+
+		slog.Debug("Add museum", "sfo id", sfoid, "parent id", parent_id, "id", m_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
+		museum := &Museum{
+			WhosOnFirstId: m_id,
+			SFOId:         sfoid,
+		}
+
+		if len(galleries) > 0 {
+			museum.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			museum.PublicArt = publicart
+		}
+
+		museums = append(museums, museum)
+	}
+
+	return museums, nil
 }
