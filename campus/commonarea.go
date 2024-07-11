@@ -14,6 +14,7 @@ import (
 
 // type CommonArea is a lightweight data structure to represent common areas at SFO with pointers its descendants.
 type CommonArea struct {
+	Element
 	WhosOnFirstId    int64              `json:"id"`
 	SFOId            string             `json:"sfo:id"`
 	Gates            []*Gate            `json:"gates,omitempty"`
@@ -22,6 +23,73 @@ type CommonArea struct {
 	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
 	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"` // for example T2
 	Museums          []*Museum          `json:"museums,omitempty"`          // for example AML
+}
+
+func (c *CommonArea) Id() int64 {
+	return c.WhosOnFirstId
+}
+
+func (c *CommonArea) Placetype() string {
+	return "commonarea"
+}
+
+func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+
+	for _, g := range c.Gates {
+
+		err := walkElement(ctx, g, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, cp := range c.Checkpoints {
+
+		err := walkElement(ctx, cp, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, g := range c.Galleries {
+
+		err := walkElement(ctx, g, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, pa := range c.PublicArt {
+
+		err := walkElement(ctx, pa, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, od := range c.ObservationDecks {
+
+		err := walkElement(ctx, od, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, m := range c.Museums {
+
+		err := walkElement(ctx, m, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (ca *CommonArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

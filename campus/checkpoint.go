@@ -14,8 +14,21 @@ import (
 
 // type Checkpoint is a lightweight data structure to represent security checkpoints at SFO.
 type Checkpoint struct {
+	Element
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfo:id"`
+}
+
+func (c *Checkpoint) Id() int64 {
+	return c.WhosOnFirstId
+}
+
+func (c *Checkpoint) Placetype() string {
+	return "checkpoint"
+}
+
+func (c *Checkpoint) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+	return nil
 }
 
 func (cp *Checkpoint) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

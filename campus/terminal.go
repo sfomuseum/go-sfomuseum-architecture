@@ -14,10 +14,42 @@ import (
 
 // type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
 type Terminal struct {
+	Element
 	WhosOnFirstId int64           `json:"id"`
 	SFOId         string          `json:"sfo:id"`
 	CommonAreas   []*CommonArea   `json:"commonareas,omitempty"`
 	BoardingAreas []*BoardingArea `json:"boardingareas,omitempty"`
+}
+
+func (t *Terminal) Id() int64 {
+	return t.WhosOnFirstId
+}
+
+func (t *Terminal) Placetype() string {
+	return "terminal"
+}
+
+func (t *Terminal) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+
+	for _, ba := range t.BoardingAreas {
+
+		err := walkElement(ctx, ba, cb)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, ca := range t.CommonAreas {
+
+		err := walkElement(ctx, ca, cb)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (t *Terminal) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

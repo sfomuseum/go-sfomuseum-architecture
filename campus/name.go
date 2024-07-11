@@ -2,12 +2,22 @@ package campus
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
 )
+
+func treeName(ctx context.Context, r reader.Reader, el Element, indent int) string {
+
+	id := el.Id()
+	pt := el.Placetype()
+
+	return fmt.Sprintf("%s (%s) %d %s\n", strings.Repeat("\t", indent), pt, id, name(ctx, r, id))
+}
 
 func name(ctx context.Context, r reader.Reader, id int64) string {
 

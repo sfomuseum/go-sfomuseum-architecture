@@ -14,8 +14,21 @@ import (
 
 // type Gate is a lightweight data structure to represent passenger gates at SFO.
 type Gate struct {
+	Element
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfo:id"`
+}
+
+func (g *Gate) Id() int64 {
+	return g.WhosOnFirstId
+}
+
+func (g *Gate) Placetype() string {
+	return "gate"
+}
+
+func (g *Gate) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+	return nil
 }
 
 func (g *Gate) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

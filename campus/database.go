@@ -17,7 +17,7 @@ import (
 
 var WARN_IS_CURRENT = true
 
-func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*aa_database.SQLiteDatabase, error) {
+func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*sql.DB, error) {
 
 	driver := "sqlite3"
 
@@ -97,7 +97,13 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 		return nil, err
 	}
 
-	return db, nil
+	conn, err := db.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {
@@ -137,11 +143,6 @@ func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype st
 
 	if err != nil {
 		return nil, err
-	}
-
-	if placetype == "publicart" {
-
-		slog.Info("WTF", "parent id", parent_id, "children", children)
 	}
 
 	return children, nil

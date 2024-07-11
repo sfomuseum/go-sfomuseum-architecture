@@ -14,10 +14,42 @@ import (
 
 // type Museum is a lightweight data structure to represent dedicated Museum-related areas, distinct from galleries, at SFO  with pointers to its descendants.
 type Museum struct {
+	Element
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	Galleries     []*Gallery   `json:"galleries,omitempty"`
 	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+}
+
+func (m *Museum) Id() int64 {
+	return m.WhosOnFirstId
+}
+
+func (m *Museum) Placetype() string {
+	return "museum"
+}
+
+func (m *Museum) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+
+	for _, pa := range m.PublicArt {
+
+		err := walkElement(ctx, pa, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, g := range m.Galleries {
+
+		err := walkElement(ctx, g, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (m *Museum) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

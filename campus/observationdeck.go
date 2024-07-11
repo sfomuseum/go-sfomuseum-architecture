@@ -14,10 +14,42 @@ import (
 
 // type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
 type ObservationDeck struct {
+	Element
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	PublicArt     []*PublicArt `json:"publicart,omitempty"`
 	Galleries     []*Gallery   `json:"galleries,omitempty"`
+}
+
+func (od *ObservationDeck) Id() int64 {
+	return od.WhosOnFirstId
+}
+
+func (od *ObservationDeck) Placetype() string {
+	return "observationdeck"
+}
+
+func (od *ObservationDeck) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+
+	for _, pa := range od.PublicArt {
+
+		err := walkElement(ctx, pa, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	for _, g := range od.Galleries {
+
+		err := walkElement(ctx, g, cb)
+
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func (ob *ObservationDeck) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

@@ -14,8 +14,21 @@ import (
 
 // type PublicArt is a lightweight data structure to represent public art works at SFO.
 type PublicArt struct {
+	Element
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfomuseum:id"`
+}
+
+func (c *PublicArt) Id() int64 {
+	return c.WhosOnFirstId
+}
+
+func (c *PublicArt) Placetype() string {
+	return "publicart"
+}
+
+func (c *PublicArt) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+	return nil
 }
 
 func (p *PublicArt) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

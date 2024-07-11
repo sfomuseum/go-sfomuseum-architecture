@@ -14,8 +14,21 @@ import (
 
 // type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.
 type Gallery struct {
+	Element
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfomuseum:id"`
+}
+
+func (c *Gallery) Id() int64 {
+	return c.WhosOnFirstId
+}
+
+func (c *Gallery) Placetype() string {
+	return "gallery"
+}
+
+func (c *Gallery) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+	return nil
 }
 
 func (g *Gallery) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -41,23 +42,17 @@ func main() {
 
 	paths := flag.Args()
 
-	aa_db, err := campus.NewDatabaseWithIterator(ctx, dsn, iterator_uri, paths...)
+	db, err := campus.NewDatabaseWithIterator(ctx, dsn, iterator_uri, paths...)
 
 	if err != nil {
 		log.Fatalf("Failed to create database, %v", err)
-	}
-
-	db_conn, err := aa_db.Conn()
-
-	if err != nil {
-		log.Fatalf("Failed to create database connection, %v", err)
 	}
 
 	if complex_id != 0 {
 		campus.WARN_IS_CURRENT = false
 	}
 
-	c, err := campus.DeriveComplex(ctx, db_conn, complex_id)
+	c, err := campus.DeriveComplex(ctx, db, complex_id)
 
 	if err != nil {
 		log.Fatalf("Failed to derive complex, %v", err)
@@ -66,6 +61,29 @@ func main() {
 	writers := make([]io.Writer, 0)
 	writers = append(writers, os.Stdout)
 	wr := io.MultiWriter(writers...)
+
+	mk_reader := func(ctx context.Context) (reader.Reader, error) {
+
+		architecture_r, err := reader.NewReader(ctx, architecture_reader_uri)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create new architecture reader, %w", err)
+		}
+
+		publicart_r, err := reader.NewReader(ctx, publicart_reader_uri)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create new public art reader, %w", err)
+		}
+
+		multi_r, err := reader.NewMultiReader(ctx, architecture_r, publicart_r)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create new multi reader, %w", err)
+		}
+
+		return multi_r, nil
+	}
 
 	switch output_mode {
 	case "json":
@@ -78,25 +96,13 @@ func main() {
 
 	case "tree":
 
-		architecture_r, err := reader.NewReader(ctx, architecture_reader_uri)
+		r, err := mk_reader(ctx)
 
 		if err != nil {
-			log.Fatalf("Failed to create new architecture reader, %v", err)
+			log.Fatalf("Failed to create reader, %v", err)
 		}
 
-		publicart_r, err := reader.NewReader(ctx, publicart_reader_uri)
-
-		if err != nil {
-			log.Fatalf("Failed to create new public art reader, %v", err)
-		}
-
-		multi_r, err := reader.NewMultiReader(ctx, architecture_r, publicart_r)
-
-		if err != nil {
-			log.Fatalf("Failed to create new multi reader, %v", err)
-		}
-
-		err = c.AsTree(ctx, multi_r, wr, 0)
+		err = c.AsTree(ctx, r, wr, 0)
 
 		if err != nil {
 			log.Fatalf("Failed to render complex as tree, %v", err)
