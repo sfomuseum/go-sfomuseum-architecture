@@ -12,6 +12,12 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type Gate is a lightweight data structure to represent passenger gates at SFO.
+type Gate struct {
+	WhosOnFirstId int64  `json:"id"`
+	SFOId         string `json:"sfo:id"`
+}
+
 func (g *Gate) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	g_id := g.WhosOnFirstId

@@ -12,6 +12,12 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type Checkpoint is a lightweight data structure to represent security checkpoints at SFO.
+type Checkpoint struct {
+	WhosOnFirstId int64  `json:"id"`
+	SFOId         string `json:"sfo:id"`
+}
+
 func (cp *Checkpoint) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	cp_id := cp.WhosOnFirstId

@@ -12,6 +12,14 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
+type Terminal struct {
+	WhosOnFirstId int64           `json:"id"`
+	SFOId         string          `json:"sfo:id"`
+	CommonAreas   []*CommonArea   `json:"commonareas,omitempty"`
+	BoardingAreas []*BoardingArea `json:"boardingareas,omitempty"`
+}
+
 func (t *Terminal) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	t_id := t.WhosOnFirstId

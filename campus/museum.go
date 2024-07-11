@@ -12,6 +12,14 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type Museum is a lightweight data structure to represent dedicated Museum-related areas, distinct from galleries, at SFO  with pointers to its descendants.
+type Museum struct {
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	Galleries     []*Gallery   `json:"galleries,omitempty"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+}
+
 func (m *Museum) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	m_id := m.WhosOnFirstId

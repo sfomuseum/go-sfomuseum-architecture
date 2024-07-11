@@ -12,6 +12,18 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type CommonArea is a lightweight data structure to represent common areas at SFO with pointers its descendants.
+type CommonArea struct {
+	WhosOnFirstId    int64              `json:"id"`
+	SFOId            string             `json:"sfo:id"`
+	Gates            []*Gate            `json:"gates,omitempty"`
+	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
+	Galleries        []*Gallery         `json:"galleries,omitempty"`
+	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
+	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"` // for example T2
+	Museums          []*Museum          `json:"museums,omitempty"`          // for example AML
+}
+
 func (ca *CommonArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	ca_id := ca.WhosOnFirstId

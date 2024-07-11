@@ -11,6 +11,17 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// SFO Terminal Complex (1954~ to 1963~)
+// https://millsfield.sfomuseum.org/buildings/1159396329/
+const FIRST_SFO_COMPLEX int64 = 1159396329
+
+// type Complex is a lightweight data structure to represent the terminal complex at SFO with pointers its descendants.
+type Complex struct {
+	WhosOnFirstId int64       `json:"id"`
+	SFOId         string      `json:"sfo:id"`
+	Terminals     []*Terminal `json:"terminals"`
+}
+
 func (c *Complex) AsJSON(ctx context.Context, wr io.Writer) error {
 
 	enc := json.NewEncoder(wr)
@@ -38,7 +49,7 @@ func DeriveComplex(ctx context.Context, db *sql.DB, complex_id int64) (*Complex,
 
 	if complex_id == 0 {
 
-		id, err := findMostRecentComplexID(ctx, db, FIRST_SFO)
+		id, err := findMostRecentComplexID(ctx, db, FIRST_SFO_COMPLEX)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive most recent complex ID, %w", err)

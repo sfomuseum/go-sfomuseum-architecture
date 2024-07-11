@@ -12,6 +12,14 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
+type ObservationDeck struct {
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+	Galleries     []*Gallery   `json:"galleries,omitempty"`
+}
+
 func (ob *ObservationDeck) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	ob_id := ob.WhosOnFirstId

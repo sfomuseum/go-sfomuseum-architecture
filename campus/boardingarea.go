@@ -12,6 +12,18 @@ import (
 	"github.com/whosonfirst/go-reader"
 )
 
+// type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.
+type BoardingArea struct {
+	WhosOnFirstId    int64              `json:"id"`
+	SFOId            string             `json:"sfo:id"`
+	Gates            []*Gate            `json:"gates,omitempty"`
+	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
+	Galleries        []*Gallery         `json:"galleries,omitempty"`
+	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
+	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"`
+	Museums          []*Museum          `json:"museums,omitempty"` // for example AML
+}
+
 func (b *BoardingArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
 	b_id := b.WhosOnFirstId

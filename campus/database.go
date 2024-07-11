@@ -15,6 +15,8 @@ import (
 	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
 )
 
+var WARN_IS_CURRENT = true
+
 func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*aa_database.SQLiteDatabase, error) {
 
 	driver := "sqlite3"
@@ -71,46 +73,6 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, spr_table)
 
-	/*
-		if opts.IndexRTreeTable {
-
-			rtree_opts, err := tables.DefaultRTreeTableOptions()
-
-			if err != nil {
-				return nil, err
-			}
-
-			rtree_opts.IndexAltFiles = opts.IndexAltFiles
-
-			rtree_table, err := tables.NewRTreeTableWithDatabaseAndOptions(ctx, db, rtree_opts)
-
-			if err != nil {
-				return nil, err
-			}
-
-			to_index = append(to_index, rtree_table)
-		}
-
-		if opts.IndexPropertiesTable || opts.IndexRTreeTable {
-
-			properties_opts, err := tables.DefaultPropertiesTableOptions()
-
-			if err != nil {
-				return nil, err
-			}
-
-			properties_opts.IndexAltFiles = opts.IndexAltFiles
-
-			properties_table, err := tables.NewPropertiesTableWithDatabaseAndOptions(ctx, db, properties_opts)
-
-			if err != nil {
-				return nil, err
-			}
-
-			to_index = append(to_index, properties_table)
-		}
-	*/
-
 	record_opts := &index.SQLiteFeaturesLoadRecordFuncOptions{
 		StrictAltFiles: false,
 	}
@@ -141,6 +103,8 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {
 
 	q := `SELECT s.id FROM spr s, geojson g WHERE s.id=g.id AND s.parent_id=? AND JSON_EXTRACT(g.body, '$.properties."sfomuseum:placetype"')=?`
+
+	slog.Debug(q, "parent_id", parent_id, "placetype", placetype)
 
 	rows, err := db.QueryContext(ctx, q, parent_id, placetype)
 
@@ -175,6 +139,11 @@ func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype st
 		return nil, err
 	}
 
+	if placetype == "publicart" {
+
+		slog.Info("WTF", "parent id", parent_id, "children", children)
+	}
+
 	return children, nil
 }
 
@@ -202,7 +171,7 @@ func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]by
 		return nil, fmt.Errorf("Missing properties.mz:is_current property for record %d", id)
 	}
 
-	if current_rsp.Int() != 1 {
+	if current_rsp.Int() != 1 && WARN_IS_CURRENT {
 
 		cessation_str := cessation_rsp.String()
 
@@ -210,7 +179,7 @@ func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]by
 			slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 		}
 
-		return nil, nil
+		// return nil, nil
 	}
 
 	return body, nil
