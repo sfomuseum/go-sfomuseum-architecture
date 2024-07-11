@@ -17,11 +17,15 @@ func main() {
 	var output_mode string
 	var reader_uri string
 	var verbose bool
+	var complex_id int64
+	var dsn string
 
 	flag.StringVar(&iterator_uri, "iterator-uri", "repo://", "...")
 	flag.StringVar(&output_mode, "output-mode", "json", "...")
 	flag.StringVar(&reader_uri, "reader-uri", "repo:///usr/local/data/sfomuseum-data-architecture", "...")
 	flag.BoolVar(&verbose, "verbose", false, "...")
+	flag.Int64Var(&complex_id, "complex-id", 0, "If 0 then the most recent (current) complex ID will be used.")
+	flag.StringVar(&dsn, "dsn", ":memory:", "...")
 
 	flag.Parse()
 
@@ -32,17 +36,29 @@ func main() {
 		// why is this so hard?
 	}
 
+	paths := flag.Args()
+
+	aa_db, err := campus.NewDatabaseWithIterator(ctx, dsn, iterator_uri, paths...)
+
+	if err != nil {
+		log.Fatalf("Failed to create database, %v", err)
+	}
+
+	db_conn, err := aa_db.Conn()
+
+	if err != nil {
+		log.Fatalf("Failed to create database connection, %v", err)
+	}
+
+	c, err := campus.DeriveComplex(ctx, db_conn, complex_id)
+
+	if err != nil {
+		log.Fatalf("Failed to derive complex, %v", err)
+	}
+
 	writers := make([]io.Writer, 0)
 	writers = append(writers, os.Stdout)
 	wr := io.MultiWriter(writers...)
-
-	paths := flag.Args()
-
-	c, err := campus.MostRecentComplexWithIterator(ctx, iterator_uri, paths...)
-
-	if err != nil {
-		log.Fatalf("Failed to derive most recent complex, %v", err)
-	}
 
 	switch output_mode {
 	case "json":

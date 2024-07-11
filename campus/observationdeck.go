@@ -39,9 +39,9 @@ func (ob *ObservationDeck) AsTree(ctx context.Context, r reader.Reader, wr io.Wr
 
 }
 
-func FindObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*ObservationDeck, error) {
+func DeriveObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*ObservationDeck, error) {
 
-	slog.Debug("Find observation decks", "parent id", t_id)
+	slog.Debug("Derive observation decks", "parent id", t_id)
 
 	deck_ids, err := findChildIDs(ctx, db, t_id, "observationdeck")
 
@@ -53,13 +53,13 @@ func FindObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 
 	for _, d_id := range deck_ids {
 
-		galleries, err := FindGalleries(ctx, db, d_id)
+		galleries, err := DeriveGalleries(ctx, db, d_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive galleries for observation deck %d, %w", d_id, err)
 		}
 
-		publicart, err := FindPublicArt(ctx, db, d_id)
+		publicart, err := DerivePublicArt(ctx, db, d_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive public art for observation deck %d, %w", d_id, err)

@@ -75,9 +75,9 @@ func (b *BoardingArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer
 
 }
 
-func FindBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingArea, error) {
+func DeriveBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingArea, error) {
 
-	slog.Debug("Find boarding areas", "parent", id)
+	slog.Debug("Derive boarding areas", "parent", id)
 
 	boardingarea_ids, err := findChildIDs(ctx, db, id, "boardingarea")
 
@@ -89,37 +89,37 @@ func FindBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 
 	for _, b_id := range boardingarea_ids {
 
-		gates, err := FindGates(ctx, db, b_id)
+		gates, err := DeriveGates(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive gates for boarding area %d, %w", b_id, err)
 		}
 
-		checkpoints, err := FindCheckpoints(ctx, db, b_id)
+		checkpoints, err := DeriveCheckpoints(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive check points for boarding area %d, %w", b_id, err)
 		}
 
-		galleries, err := FindGalleries(ctx, db, b_id)
+		galleries, err := DeriveGalleries(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive galleries for boarding area %d, %w", b_id, err)
 		}
 
-		publicart, err := FindPublicArt(ctx, db, b_id)
+		publicart, err := DerivePublicArt(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive public art for boarding area %d, %w", b_id, err)
 		}
 
-		observation_decks, err := FindObservationDecks(ctx, db, b_id)
+		observation_decks, err := DeriveObservationDecks(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive observation decks for boarding area %d, %w", b_id, err)
 		}
 
-		museums, err := FindMuseums(ctx, db, b_id)
+		museums, err := DeriveMuseums(ctx, db, b_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive museums for boarding area %d, %w", b_id, err)

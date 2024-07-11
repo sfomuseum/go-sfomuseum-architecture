@@ -1,6 +1,10 @@
 // package campus provides methods for working with the SFO airport campus.
 package campus
 
+// SFO Terminal Complex (1954~ to 1963~)
+// https://millsfield.sfomuseum.org/buildings/1159396329/
+const FIRST_SFO int64 = 1159396329
+
 // type Campus is a lightweight data structure to represent the SFO campus with pointers its descendants.
 type Campus struct {
 	WhosOnFirstId int64        `json:"id"`

@@ -75,9 +75,9 @@ func (ca *CommonArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer,
 
 }
 
-func FindCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*CommonArea, error) {
+func DeriveCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*CommonArea, error) {
 
-	slog.Debug("Find common areas", "parent", parent_id)
+	slog.Debug("Derive common areas", "parent", parent_id)
 
 	commonarea_ids, err := findChildIDs(ctx, db, parent_id, "commonarea")
 
@@ -89,37 +89,37 @@ func FindCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 
 	for _, c_id := range commonarea_ids {
 
-		gates, err := FindGates(ctx, db, c_id)
+		gates, err := DeriveGates(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive gates for common area %d, %w", c_id, err)
 		}
 
-		checkpoints, err := FindCheckpoints(ctx, db, c_id)
+		checkpoints, err := DeriveCheckpoints(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive gates for check points %d, %w", c_id, err)
 		}
 
-		galleries, err := FindGalleries(ctx, db, c_id)
+		galleries, err := DeriveGalleries(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive gates for galleries %d, %w", c_id, err)
 		}
 
-		observation_decks, err := FindObservationDecks(ctx, db, c_id)
+		observation_decks, err := DeriveObservationDecks(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive observation decks for galleries %d, %w", c_id, err)
 		}
 
-		museums, err := FindMuseums(ctx, db, c_id)
+		museums, err := DeriveMuseums(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive museums for common area %d, %w", c_id, err)
 		}
 
-		publicart, err := FindPublicArt(ctx, db, c_id)
+		publicart, err := DerivePublicArt(ctx, db, c_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive public art for common area %d, %w", c_id, err)

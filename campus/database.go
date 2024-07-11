@@ -15,101 +15,7 @@ import (
 	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
 )
 
-func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {
-
-	q := `SELECT s.id FROM spr s, geojson g WHERE s.id=g.id AND s.parent_id=? AND JSON_EXTRACT(g.body, '$.properties."sfomuseum:placetype"')=?`
-
-	rows, err := db.QueryContext(ctx, q, parent_id, placetype)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-	children := make([]int64, 0)
-
-	for rows.Next() {
-
-		var superseded_by int64
-		err := rows.Scan(&superseded_by)
-
-		if err != nil {
-			return nil, err
-		}
-
-		children = append(children, superseded_by)
-	}
-
-	err = rows.Close()
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = rows.Err()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return children, nil
-}
-
-func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
-
-	body, err := loadFeatureWithDB(ctx, db, id)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load feature for record %d, %w", id, err)
-	}
-
-	name_rsp := gjson.GetBytes(body, "properties.wof:name")
-	inception_rsp := gjson.GetBytes(body, "properties.edtf:inception")
-	cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
-
-	deprecated_rsp := gjson.GetBytes(body, "properties.edtf:deprecated")
-
-	if deprecated_rsp.Exists() && deprecated_rsp.String() != "" {
-		return nil, nil
-	}
-
-	current_rsp := gjson.GetBytes(body, "properties.mz:is_current")
-
-	if !current_rsp.Exists() {
-		return nil, fmt.Errorf("Missing properties.mz:is_current property for record %d", id)
-	}
-
-	if current_rsp.Int() != 1 {
-
-		cessation_str := cessation_rsp.String()
-
-		if cessation_str == "" || cessation_str == edtf.OPEN {
-			slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
-		}
-
-		return nil, nil
-	}
-
-	return body, nil
-}
-
-func loadFeatureWithDB(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
-
-	q := "SELECT body FROM geojson WHERE id = ?"
-
-	row := db.QueryRowContext(ctx, q, id)
-
-	var body string
-	err := row.Scan(&body)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(body), nil
-}
-
-func newWhosOnFirstDatabaseFromIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*aa_database.SQLiteDatabase, error) {
+func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*aa_database.SQLiteDatabase, error) {
 
 	driver := "sqlite3"
 
@@ -230,4 +136,98 @@ func newWhosOnFirstDatabaseFromIterator(ctx context.Context, dsn string, iterato
 	}
 
 	return db, nil
+}
+
+func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {
+
+	q := `SELECT s.id FROM spr s, geojson g WHERE s.id=g.id AND s.parent_id=? AND JSON_EXTRACT(g.body, '$.properties."sfomuseum:placetype"')=?`
+
+	rows, err := db.QueryContext(ctx, q, parent_id, placetype)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	children := make([]int64, 0)
+
+	for rows.Next() {
+
+		var superseded_by int64
+		err := rows.Scan(&superseded_by)
+
+		if err != nil {
+			return nil, err
+		}
+
+		children = append(children, superseded_by)
+	}
+
+	err = rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return children, nil
+}
+
+func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
+
+	body, err := loadFeatureWithDB(ctx, db, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load feature for record %d, %w", id, err)
+	}
+
+	name_rsp := gjson.GetBytes(body, "properties.wof:name")
+	inception_rsp := gjson.GetBytes(body, "properties.edtf:inception")
+	cessation_rsp := gjson.GetBytes(body, "properties.edtf:cessation")
+
+	deprecated_rsp := gjson.GetBytes(body, "properties.edtf:deprecated")
+
+	if deprecated_rsp.Exists() && deprecated_rsp.String() != "" {
+		return nil, nil
+	}
+
+	current_rsp := gjson.GetBytes(body, "properties.mz:is_current")
+
+	if !current_rsp.Exists() {
+		return nil, fmt.Errorf("Missing properties.mz:is_current property for record %d", id)
+	}
+
+	if current_rsp.Int() != 1 {
+
+		cessation_str := cessation_rsp.String()
+
+		if cessation_str == "" || cessation_str == edtf.OPEN {
+			slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		}
+
+		return nil, nil
+	}
+
+	return body, nil
+}
+
+func loadFeatureWithDB(ctx context.Context, db *sql.DB, id int64) ([]byte, error) {
+
+	q := "SELECT body FROM geojson WHERE id = ?"
+
+	row := db.QueryRowContext(ctx, q, id)
+
+	var body string
+	err := row.Scan(&body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(body), nil
 }

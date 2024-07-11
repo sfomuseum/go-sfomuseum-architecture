@@ -39,9 +39,9 @@ func (m *Museum) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, inde
 
 }
 
-func FindMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, error) {
+func DeriveMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, error) {
 
-	slog.Debug("Find museums", "parent id", parent_id)
+	slog.Debug("Derive museums", "parent id", parent_id)
 
 	museum_ids, err := findChildIDs(ctx, db, parent_id, "museum")
 
@@ -53,13 +53,13 @@ func FindMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, e
 
 	for _, m_id := range museum_ids {
 
-		galleries, err := FindGalleries(ctx, db, m_id)
+		galleries, err := DeriveGalleries(ctx, db, m_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive galleries for museum %d, %w", m_id, err)
 		}
 
-		publicart, err := FindPublicArt(ctx, db, m_id)
+		publicart, err := DerivePublicArt(ctx, db, m_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive public art for museum %d, %w", m_id, err)

@@ -39,9 +39,9 @@ func (t *Terminal) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, in
 
 }
 
-func FindTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, error) {
+func DeriveTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, error) {
 
-	slog.Debug("Find terminals", "parent id", sfo_id)
+	slog.Debug("Derive terminals", "parent id", sfo_id)
 
 	terminal_ids, err := findChildIDs(ctx, db, sfo_id, "terminal")
 
@@ -53,13 +53,13 @@ func FindTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 
 	for _, t_id := range terminal_ids {
 
-		commonareas, err := FindCommonAreas(ctx, db, t_id)
+		commonareas, err := DeriveCommonAreas(ctx, db, t_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive common areas for %d, %w", t_id, err)
 		}
 
-		boardingareas, err := FindBoardingAreas(ctx, db, t_id)
+		boardingareas, err := DeriveBoardingAreas(ctx, db, t_id)
 
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive boarding areas for %d, %w", t_id, err)

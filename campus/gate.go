@@ -21,9 +21,9 @@ func (g *Gate) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent
 
 }
 
-func FindGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error) {
+func DeriveGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error) {
 
-	slog.Debug("Find gates", "parent", parent_id)
+	slog.Debug("Derive gates", "parent", parent_id)
 
 	gate_ids, err := findChildIDs(ctx, db, parent_id, "gate")
 

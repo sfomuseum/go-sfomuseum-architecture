@@ -21,9 +21,9 @@ func (g *Gallery) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, ind
 
 }
 
-func FindGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery, error) {
+func DeriveGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery, error) {
 
-	slog.Debug("Find galleries", "parent id", parent_id)
+	slog.Debug("Derive galleries", "parent id", parent_id)
 
 	gallery_ids, err := findChildIDs(ctx, db, parent_id, "gallery")
 

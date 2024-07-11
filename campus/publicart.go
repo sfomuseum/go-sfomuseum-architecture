@@ -21,9 +21,9 @@ func (p *PublicArt) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, i
 
 }
 
-func FindPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicArt, error) {
+func DerivePublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicArt, error) {
 
-	slog.Debug("Find public art", "parent id", parent_id)
+	slog.Debug("Derive public art", "parent id", parent_id)
 
 	publicart_ids, err := findChildIDs(ctx, db, parent_id, "publicart")
 

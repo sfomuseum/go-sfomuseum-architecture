@@ -21,9 +21,9 @@ func (cp *Checkpoint) AsTree(ctx context.Context, r reader.Reader, wr io.Writer,
 
 }
 
-func FindCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Checkpoint, error) {
+func DeriveCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Checkpoint, error) {
 
-	slog.Debug("Find check points", "parent id", parent_id)
+	slog.Debug("Derive check points", "parent id", parent_id)
 
 	checkpoint_ids, err := findChildIDs(ctx, db, parent_id, "checkpoint")
 
