@@ -34,6 +34,7 @@ import (
 
 	"github.com/aaronland/go-sqlite"
 	aa_database "github.com/aaronland/go-sqlite/database"
+	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
@@ -90,7 +91,7 @@ func FindMostRecentComplexWithDatabase(ctx context.Context, db *sql.DB) (*Comple
 
 func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, error) {
 
-	slog.Info("Find terminals", "parent id", sfo_id)
+	slog.Debug("Find terminals", "parent id", sfo_id)
 
 	terminal_ids, err := findChildIDs(ctx, db, sfo_id, "terminal")
 
@@ -158,7 +159,7 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 		inception_rsp := gjson.GetBytes(t_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(t_body, "properties.edtf:cessation")
 
-		slog.Info("Add terminal", "sfo id", sfoid, "id", t_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add terminal", "sfo id", sfoid, "id", t_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		terminal := &Terminal{
 			WhosOnFirstId: t_id,
@@ -181,7 +182,7 @@ func findTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, 
 
 func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*ObservationDeck, error) {
 
-	slog.Info("Find observation decks", "parent id", t_id)
+	slog.Debug("Find observation decks", "parent id", t_id)
 
 	deck_ids, err := findChildIDs(ctx, db, t_id, "observationdeck")
 
@@ -229,7 +230,7 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 		inception_rsp := gjson.GetBytes(d_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(d_body, "properties.edtf:cessation")
 
-		slog.Info("Add observation deck", "sfo id", sfoid, "parent id", t_id, "id", d_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add observation deck", "sfo id", sfoid, "parent id", t_id, "id", d_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		deck := &ObservationDeck{
 			WhosOnFirstId: d_id,
@@ -250,9 +251,80 @@ func findObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*Obser
 	return decks, nil
 }
 
+func findMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, error) {
+
+	slog.Debug("Find museums", "parent id", parent_id)
+
+	museum_ids, err := findChildIDs(ctx, db, parent_id, "museum")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find any child records (museums) for %d, %v", parent_id, err)
+	}
+
+	museums := make([]*Museum, 0)
+
+	for _, m_id := range museum_ids {
+
+		galleries, err := findGalleries(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive galleries for museum %d, %w", m_id, err)
+		}
+
+		publicart, err := findPublicArt(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive public art for museum %d, %w", m_id, err)
+		}
+
+		m_body, err := loadFeatureWithDBAndChecks(ctx, db, m_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load feature for museum %d, %w", m_id, err)
+		}
+
+		if m_body == nil {
+			continue
+		}
+
+		var sfoid string
+
+		rsp := gjson.GetBytes(m_body, "properties.sfo:id")
+
+		if !rsp.Exists() {
+			return nil, fmt.Errorf("Unable to find sfo:id for WOF record, %d", m_id)
+		}
+
+		sfoid = rsp.String()
+
+		name_rsp := gjson.GetBytes(m_body, "properties.wof:name")
+		inception_rsp := gjson.GetBytes(m_body, "properties.edtf:inception")
+		cessation_rsp := gjson.GetBytes(m_body, "properties.edtf:cessation")
+
+		slog.Debug("Add museum", "sfo id", sfoid, "parent id", parent_id, "id", m_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
+		museum := &Museum{
+			WhosOnFirstId: m_id,
+			SFOId:         sfoid,
+		}
+
+		if len(galleries) > 0 {
+			museum.Galleries = galleries
+		}
+
+		if len(publicart) > 0 {
+			museum.PublicArt = publicart
+		}
+
+		museums = append(museums, museum)
+	}
+
+	return museums, nil
+}
+
 func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*CommonArea, error) {
 
-	slog.Info("Find common areas", "parent", parent_id)
+	slog.Debug("Find common areas", "parent", parent_id)
 
 	commonarea_ids, err := findChildIDs(ctx, db, parent_id, "commonarea")
 
@@ -288,10 +360,16 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 			return nil, fmt.Errorf("Failed to derive observation decks for galleries %d, %w", c_id, err)
 		}
 
+		museums, err := findMuseums(ctx, db, c_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive museums for common area %d, %w", c_id, err)
+		}
+
 		publicart, err := findPublicArt(ctx, db, c_id)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to derive public art for galleries %d, %w", c_id, err)
+			return nil, fmt.Errorf("Failed to derive public art for common area %d, %w", c_id, err)
 		}
 
 		c_body, err := loadFeatureWithDBAndChecks(ctx, db, c_id)
@@ -338,7 +416,7 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 		inception_rsp := gjson.GetBytes(c_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(c_body, "properties.edtf:cessation")
 
-		slog.Info("Add common area", "sfo id", sfoid, "id", c_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add common area", "sfo id", sfoid, "id", c_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		area := &CommonArea{
 			WhosOnFirstId: c_id,
@@ -365,6 +443,10 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 			area.ObservationDecks = observation_decks
 		}
 
+		if len(museums) > 0 {
+			area.Museums = museums
+		}
+
 		commonareas = append(commonareas, area)
 	}
 
@@ -373,7 +455,7 @@ func findCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*Commo
 
 func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingArea, error) {
 
-	slog.Info("Find boarding areas", "parent", id)
+	slog.Debug("Find boarding areas", "parent", id)
 
 	boardingarea_ids, err := findChildIDs(ctx, db, id, "boardingarea")
 
@@ -415,6 +497,12 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			return nil, fmt.Errorf("Failed to derive observation decks for boarding area %d, %w", b_id, err)
 		}
 
+		museums, err := findMuseums(ctx, db, b_id)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive museums for boarding area %d, %w", b_id, err)
+		}
+
 		b_body, err := loadFeatureWithDBAndChecks(ctx, db, b_id)
 
 		if err != nil {
@@ -448,7 +536,7 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 		inception_rsp := gjson.GetBytes(b_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(b_body, "properties.edtf:cessation")
 
-		slog.Info("Add boardinarea", "sfo id", sfoid, "id", b_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add boardinarea", "sfo id", sfoid, "id", b_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		area := &BoardingArea{
 			WhosOnFirstId: b_id,
@@ -475,6 +563,10 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 			area.ObservationDecks = observation_decks
 		}
 
+		if len(museums) > 0 {
+			area.Museums = museums
+		}
+
 		boardingareas = append(boardingareas, area)
 	}
 
@@ -484,7 +576,7 @@ func findBoardingAreas(ctx context.Context, db *sql.DB, id int64) ([]*BoardingAr
 
 func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error) {
 
-	slog.Info("Find gates", "parent", parent_id)
+	slog.Debug("Find gates", "parent", parent_id)
 
 	gate_ids, err := findChildIDs(ctx, db, parent_id, "gate")
 
@@ -529,7 +621,7 @@ func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error
 		inception_rsp := gjson.GetBytes(g_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(g_body, "properties.edtf:cessation")
 
-		slog.Info("Add gate", "sfo id", sfoid, "parent_id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add gate", "sfo id", sfoid, "parent_id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		g := &Gate{
 			WhosOnFirstId: g_id,
@@ -544,7 +636,7 @@ func findGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error
 
 func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Checkpoint, error) {
 
-	slog.Info("Find check points", "parent id", parent_id)
+	slog.Debug("Find check points", "parent id", parent_id)
 
 	checkpoint_ids, err := findChildIDs(ctx, db, parent_id, "checkpoint")
 
@@ -580,7 +672,7 @@ func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Check
 		inception_rsp := gjson.GetBytes(cp_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(cp_body, "properties.edtf:cessation")
 
-		slog.Info("Add checkpoint", "sfo id", sfoid, "parent id", parent_id, "id", cp_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add checkpoint", "sfo id", sfoid, "parent id", parent_id, "id", cp_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		cp := &Checkpoint{
 			WhosOnFirstId: cp_id,
@@ -595,7 +687,7 @@ func findCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Check
 
 func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery, error) {
 
-	slog.Info("Find galleries", "parent id", parent_id)
+	slog.Debug("Find galleries", "parent id", parent_id)
 
 	gallery_ids, err := findChildIDs(ctx, db, parent_id, "gallery")
 
@@ -640,7 +732,7 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 		inception_rsp := gjson.GetBytes(g_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(g_body, "properties.edtf:cessation")
 
-		slog.Info("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		g := &Gallery{
 			WhosOnFirstId: g_id,
@@ -655,7 +747,7 @@ func findGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery
 
 func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicArt, error) {
 
-	slog.Info("Find public art", "parent id", parent_id)
+	slog.Debug("Find public art", "parent id", parent_id)
 
 	publicart_ids, err := findChildIDs(ctx, db, parent_id, "publicart")
 
@@ -700,7 +792,7 @@ func findPublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicA
 		inception_rsp := gjson.GetBytes(p_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(p_body, "properties.edtf:cessation")
 
-		slog.Info("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		pa := &PublicArt{
 			WhosOnFirstId: p_id,
@@ -830,7 +922,13 @@ func loadFeatureWithDBAndChecks(ctx context.Context, db *sql.DB, id int64) ([]by
 	}
 
 	if current_rsp.Int() != 1 {
-		slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+
+		cessation_str := cessation_rsp.String()
+
+		if cessation_str == "" || cessation_str == edtf.OPEN {
+			slog.Warn("Unexpected mz:is_current property", "id", id, "mz:is_current", current_rsp.Int(), "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		}
+
 		return nil, nil
 	}
 

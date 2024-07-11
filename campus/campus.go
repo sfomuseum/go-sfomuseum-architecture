@@ -49,6 +49,7 @@ type CommonArea struct {
 	Galleries        []*Gallery         `json:"galleries,omitempty"`
 	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
 	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"` // for example T2
+	Museums          []*Museum          `json:"museums,omitempty"`          // for example AML
 }
 
 // type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.
@@ -60,6 +61,15 @@ type BoardingArea struct {
 	Galleries        []*Gallery         `json:"galleries,omitempty"`
 	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
 	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"`
+	Museums          []*Museum          `json:"museums,omitempty"` // for example AML
+}
+
+// type Museum is a lightweight data structure to represent dedicated Museum-related areas, distinct from galleries, at SFO  with pointers to its descendants.
+type Museum struct {
+	WhosOnFirstId int64        `json:"id"`
+	SFOId         string       `json:"sfo:id"`
+	Galleries     []*Gallery   `json:"galleries,omitempty"`
+	PublicArt     []*PublicArt `json:"publicart,omitempty"`
 }
 
 // type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.
