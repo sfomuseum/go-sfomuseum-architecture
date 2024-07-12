@@ -5,7 +5,9 @@ go 1.22.4
 require (
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/go-sqlite v0.2.2
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/paulmach/orb v0.11.1
+	github.com/sfomuseum/go-edtf v1.1.1
 	github.com/sfomuseum/go-sfomuseum-writer/v3 v3.0.3
 	github.com/tidwall/gjson v1.17.1
 	github.com/whosonfirst/go-reader v1.0.2
@@ -39,7 +41,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
-	github.com/sfomuseum/go-edtf v1.1.1 // indirect
 	github.com/sfomuseum/go-sfomuseum-export/v2 v2.3.11 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
