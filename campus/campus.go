@@ -1,87 +1,67 @@
 // package campus provides methods for working with the SFO airport campus.
 package campus
 
+import (
+	"context"
+)
+
 // type Campus is a lightweight data structure to represent the SFO campus with pointers its descendants.
 type Campus struct {
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	Complex       *Complex     `json:"complex"`
 	Garages       []*Garage    `json:"garages"`
+	Hotels        []*Hotel     `json:"hotels"`
 	PublicArt     []*PublicArt `json:"buildings,omitempty"`
 }
 
-// type Garage is a lightweight data structure to represent garages at SFO with pointers its descendants.
-type Garage struct {
-	WhosOnFirstId int64        `json:"id"`
-	SFOId         string       `json:"sfo:id"`
-	PublicArt     []*PublicArt `json:"publicart,omitempty"`
+func (c *Campus) Id() int64 {
+	return c.WhosOnFirstId
 }
 
-// type Complex is a lightweight data structure to represent the terminal complex at SFO with pointers its descendants.
-type Complex struct {
-	WhosOnFirstId int64       `json:"id"`
-	SFOId         string      `json:"sfo:id"`
-	Terminals     []*Terminal `json:"terminals"`
+func (c *Campus) AltId() string {
+	return c.SFOId
 }
 
-// type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
-type ObservationDeck struct {
-	WhosOnFirstId int64        `json:"id"`
-	SFOId         string       `json:"sfo:id"`
-	PublicArt     []*PublicArt `json:"publicart,omitempty"`
-	Galleries     []*Gallery   `json:"galleries,omitempty"`
+func (c *Campus) Placetype() string {
+	return "campus"
 }
 
-// type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
-type Terminal struct {
-	WhosOnFirstId int64           `json:"id"`
-	SFOId         string          `json:"sfo:id"`
-	CommonAreas   []*CommonArea   `json:"commonareas,omitempty"`
-	BoardingAreas []*BoardingArea `json:"boardingareas,omitempty"`
-}
+func (c *Campus) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
-// type CommonArea is a lightweight data structure to represent common areas at SFO with pointers its descendants.
-type CommonArea struct {
-	WhosOnFirstId    int64              `json:"id"`
-	SFOId            string             `json:"sfo:id"`
-	Gates            []*Gate            `json:"gates,omitempty"`
-	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
-	Galleries        []*Gallery         `json:"galleries,omitempty"`
-	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
-	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"` // for example T2
-}
+	err := cb(ctx, c.Complex)
 
-// type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.
-type BoardingArea struct {
-	WhosOnFirstId    int64              `json:"id"`
-	SFOId            string             `json:"sfo:id"`
-	Gates            []*Gate            `json:"gates,omitempty"`
-	Checkpoints      []*Checkpoint      `json:"checkpoints,omitempty"`
-	Galleries        []*Gallery         `json:"galleries,omitempty"`
-	PublicArt        []*PublicArt       `json:"publicart,omitempty"`
-	ObservationDecks []*ObservationDeck `json:"observationdecks,omitempty"`
-}
+	if err != nil {
+		return err
+	}
 
-// type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.
-type Gallery struct {
-	WhosOnFirstId int64  `json:"id"`
-	SFOId         string `json:"sfomuseum:id"`
-}
+	for _, g := range c.Garages {
 
-// type Gate is a lightweight data structure to represent passenger gates at SFO.
-type Gate struct {
-	WhosOnFirstId int64  `json:"id"`
-	SFOId         string `json:"sfo:id"`
-}
+		err := cb(ctx, g)
 
-// type Checkpoint is a lightweight data structure to represent security checkpoints at SFO.
-type Checkpoint struct {
-	WhosOnFirstId int64  `json:"id"`
-	SFOId         string `json:"sfo:id"`
-}
+		if err != nil {
+			return err
+		}
+	}
 
-// type PublicArt is a lightweight data structure to represent public art works at SFO.
-type PublicArt struct {
-	WhosOnFirstId int64  `json:"id"`
-	SFOId         string `json:"sfomuseum:id"`
+	for _, h := range c.Hotels {
+
+		err := cb(ctx, h)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, pa := range c.PublicArt {
+
+		err := cb(ctx, pa)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
