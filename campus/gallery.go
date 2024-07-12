@@ -63,34 +63,24 @@ func DeriveGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Galle
 			continue
 		}
 
-		var sfomid string
+		map_rsp := gjson.GetBytes(g_body, "properties.sfomuseum:map_id")
+		gallery_rsp := gjson.GetBytes(g_body, "properties.sfomuseum:gallery_id")
 
-		rsp := gjson.GetBytes(g_body, "properties.sfomuseum:map_id")
-
-		if rsp.Exists() {
-
-			sfomid = rsp.String()
-
-		} else {
-
-			rsp := gjson.GetBytes(g_body, "properties.sfomuseum:gallery_id")
-
-			if !rsp.Exists() {
-				return nil, fmt.Errorf("Missing sfomuseum:gallery_id property for gallery %d", g_id)
-			}
-
-			sfomid = rsp.String()
+		if !gallery_rsp.Exists() {
+			return nil, fmt.Errorf("Missing sfomuseum:gallery_id property for gallery %d", g_id)
 		}
+
+		sfom_id := fmt.Sprintf("%s#%d", map_rsp.String(), gallery_rsp.Int())
 
 		name_rsp := gjson.GetBytes(g_body, "properties.wof:name")
 		inception_rsp := gjson.GetBytes(g_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(g_body, "properties.edtf:cessation")
 
-		slog.Debug("Add gallery", "sfo id", sfomid, "parent id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add gallery", "sfo id", sfom_id, "parent id", parent_id, "id", g_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		g := &Gallery{
 			WhosOnFirstId: g_id,
-			SFOId:         sfomid,
+			SFOId:         sfom_id,
 		}
 
 		galleries = append(galleries, g)

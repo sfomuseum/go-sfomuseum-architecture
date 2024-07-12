@@ -62,34 +62,24 @@ func DerivePublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*Publi
 			continue
 		}
 
-		var sfomid string
+		map_rsp := gjson.GetBytes(p_body, "properties.sfomuseum:map_id")
+		object_rsp := gjson.GetBytes(p_body, "properties.sfomuseum:object_id")
 
-		rsp := gjson.GetBytes(p_body, "properties.sfomuseum:map_id")
-
-		if rsp.Exists() {
-
-			sfomid = rsp.String()
-
-		} else {
-
-			rsp := gjson.GetBytes(p_body, "properties.sfomuseum:object_id")
-
-			if !rsp.Exists() {
-				return nil, fmt.Errorf("Missing sfomuseum:object_id property for public art %d, %w", p_id, err)
-			}
-
-			sfomid = rsp.String()
+		if !object_rsp.Exists() {
+			return nil, fmt.Errorf("Missing sfomuseum:object_id property for public art %d, %w", p_id, err)
 		}
+
+		sfom_id := fmt.Sprintf("%s#%d", map_rsp.String(), object_rsp.Int())
 
 		name_rsp := gjson.GetBytes(p_body, "properties.wof:name")
 		inception_rsp := gjson.GetBytes(p_body, "properties.edtf:inception")
 		cessation_rsp := gjson.GetBytes(p_body, "properties.edtf:cessation")
 
-		slog.Debug("Add public art", "sfo id", sfomid, "parent id", parent_id, "id", p_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
+		slog.Debug("Add public art", "sfo id", sfom_id, "parent id", parent_id, "id", p_id, "name", name_rsp.String(), "inception", inception_rsp.String(), "cessation", cessation_rsp.String())
 
 		pa := &PublicArt{
 			WhosOnFirstId: p_id,
-			SFOId:         sfomid,
+			SFOId:         sfom_id,
 		}
 
 		publicarts = append(publicarts, pa)
