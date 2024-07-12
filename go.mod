@@ -5,7 +5,6 @@ go 1.22.4
 require (
 	github.com/aaronland/go-roster v1.0.0
 	github.com/aaronland/go-sqlite v0.2.2
-	github.com/bwmarrin/snowflake v0.3.0
 	github.com/paulmach/orb v0.11.1
 	github.com/sfomuseum/go-edtf v1.1.1
 	github.com/sfomuseum/go-sfomuseum-writer/v3 v3.0.3
