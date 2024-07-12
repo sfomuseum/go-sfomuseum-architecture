@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,7 +13,7 @@ import (
 
 // type CommonArea is a lightweight data structure to represent common areas at SFO with pointers its descendants.
 type CommonArea struct {
-	Element
+	Element          `json:",omitempty"`
 	WhosOnFirstId    int64              `json:"id"`
 	SFOId            string             `json:"sfo:id"`
 	Gates            []*Gate            `json:"gates,omitempty"`
@@ -29,6 +28,10 @@ func (c *CommonArea) Id() int64 {
 	return c.WhosOnFirstId
 }
 
+func (c *CommonArea) AltId() string {
+	return c.SFOId
+}
+
 func (c *CommonArea) Placetype() string {
 	return "commonarea"
 }
@@ -37,7 +40,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range c.Gates {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -46,7 +49,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, cp := range c.Checkpoints {
 
-		err := walkElement(ctx, cp, cb)
+		err := cb(ctx, cp)
 
 		if err != nil {
 			return nil
@@ -55,7 +58,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range c.Galleries {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -64,7 +67,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, pa := range c.PublicArt {
 
-		err := walkElement(ctx, pa, cb)
+		err := cb(ctx, pa)
 
 		if err != nil {
 			return nil
@@ -73,7 +76,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, od := range c.ObservationDecks {
 
-		err := walkElement(ctx, od, cb)
+		err := cb(ctx, od)
 
 		if err != nil {
 			return nil
@@ -82,7 +85,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, m := range c.Museums {
 
-		err := walkElement(ctx, m, cb)
+		err := cb(ctx, m)
 
 		if err != nil {
 			return nil
@@ -94,65 +97,7 @@ func (c *CommonArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 func (ca *CommonArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
-	ca_id := ca.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (commonarea) %d %s\n", strings.Repeat("\t", indent), ca_id, name(ctx, r, ca_id))
-
-	for _, g := range ca.Gates {
-
-		err := g.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode gate as tree, %w", err)
-		}
-	}
-
-	for _, c := range ca.Checkpoints {
-
-		err := c.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode checkpoint as tree, %w", err)
-		}
-	}
-
-	for _, g := range ca.Galleries {
-
-		err := g.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode gallery as tree, %w", err)
-		}
-	}
-
-	for _, p := range ca.PublicArt {
-
-		err := p.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode public art as tree, %w", err)
-		}
-	}
-
-	for _, o := range ca.ObservationDecks {
-
-		err := o.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode observation deck as tree, %w", err)
-		}
-	}
-
-	for _, m := range ca.Museums {
-
-		err := m.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode museum as tree, %w", err)
-		}
-	}
-
-	return nil
-
+	return elementTree(ctx, ca, r, wr, indent)
 }
 
 func DeriveCommonAreas(ctx context.Context, db *sql.DB, parent_id int64) ([]*CommonArea, error) {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,30 +13,29 @@ import (
 
 // type PublicArt is a lightweight data structure to represent public art works at SFO.
 type PublicArt struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfomuseum:id"`
 }
 
-func (c *PublicArt) Id() int64 {
-	return c.WhosOnFirstId
+func (pa *PublicArt) Id() int64 {
+	return pa.WhosOnFirstId
 }
 
-func (c *PublicArt) Placetype() string {
+func (pa *PublicArt) AltId() string {
+	return pa.SFOId
+}
+
+func (pa *PublicArt) Placetype() string {
 	return "publicart"
 }
 
-func (c *PublicArt) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+func (pa *PublicArt) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 	return nil
 }
 
-func (p *PublicArt) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	p_id := p.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (public art) %d %s\n", strings.Repeat("\t", indent), p_id, name(ctx, r, p_id))
-
-	return nil
-
+func (pa *PublicArt) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
+	return elementTree(ctx, pa, r, wr, indent)
 }
 
 func DerivePublicArt(ctx context.Context, db *sql.DB, parent_id int64) ([]*PublicArt, error) {

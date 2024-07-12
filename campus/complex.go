@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/paulmach/orb/geojson"
 	"github.com/whosonfirst/go-reader"
@@ -19,7 +18,7 @@ const FIRST_SFO_COMPLEX int64 = 1159396329
 
 // type Complex is a lightweight data structure to represent the terminal complex at SFO with pointers its descendants.
 type Complex struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64       `json:"id"`
 	SFOId         string      `json:"sfo:id"`
 	Terminals     []*Terminal `json:"terminals"`
@@ -27,6 +26,10 @@ type Complex struct {
 
 func (c *Complex) Id() int64 {
 	return c.WhosOnFirstId
+}
+
+func (c *Complex) AltId() string {
+	return c.SFOId
 }
 
 func (c *Complex) Placetype() string {
@@ -37,7 +40,7 @@ func (c *Complex) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, t := range c.Terminals {
 
-		err := walkElement(ctx, t, cb)
+		err := cb(ctx, t)
 
 		if err != nil {
 			return err
@@ -178,28 +181,7 @@ func (c *Complex) AsGeoJSONLayers(ctx context.Context, r reader.Reader) (map[str
 }
 
 func (c *Complex) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	c_id := c.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (complex) %d %s\n", strings.Repeat("\t", indent), c_id, name(ctx, r, c_id))
-
-	/*
-		cb := func(ctx context.Context, el Element) error {
-			return el.AsTree(ctx, r, wr, indent+1)
-		}
-
-		return c.Walk(ctx, cb)
-	*/
-
-	for _, t := range c.Terminals {
-
-		err := t.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode Terminal as tree, %w", err)
-		}
-	}
-
-	return nil
+	return elementTree(ctx, c, r, wr, indent)
 }
 
 func DeriveComplex(ctx context.Context, db *sql.DB, complex_id int64) (*Complex, error) {

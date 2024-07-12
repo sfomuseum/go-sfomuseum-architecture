@@ -7,7 +7,7 @@ import (
 
 // type Campus is a lightweight data structure to represent the SFO campus with pointers its descendants.
 type Campus struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	Complex       *Complex     `json:"complex"`
@@ -20,13 +20,17 @@ func (c *Campus) Id() int64 {
 	return c.WhosOnFirstId
 }
 
+func (c *Campus) AltId() string {
+	return c.SFOId
+}
+
 func (c *Campus) Placetype() string {
 	return "campus"
 }
 
 func (c *Campus) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
-	err := walkElement(ctx, c.Complex, cb)
+	err := cb(ctx, c.Complex)
 
 	if err != nil {
 		return err
@@ -34,7 +38,7 @@ func (c *Campus) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range c.Garages {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return err
@@ -43,7 +47,7 @@ func (c *Campus) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, h := range c.Hotels {
 
-		err := walkElement(ctx, h, cb)
+		err := cb(ctx, h)
 
 		if err != nil {
 			return err
@@ -52,7 +56,7 @@ func (c *Campus) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, pa := range c.PublicArt {
 
-		err := walkElement(ctx, pa, cb)
+		err := cb(ctx, pa)
 
 		if err != nil {
 			return err

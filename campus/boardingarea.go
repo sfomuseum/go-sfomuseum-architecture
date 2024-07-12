@@ -14,7 +14,7 @@ import (
 
 // type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.
 type BoardingArea struct {
-	Element
+	Element          `json:",omitempty"`
 	WhosOnFirstId    int64              `json:"id"`
 	SFOId            string             `json:"sfo:id"`
 	Gates            []*Gate            `json:"gates,omitempty"`
@@ -29,6 +29,10 @@ func (b *BoardingArea) Id() int64 {
 	return b.WhosOnFirstId
 }
 
+func (b *BoardingArea) AltId() string {
+	return b.SFOId
+}
+
 func (b *BoardingArea) Placetype() string {
 	return "boardingarea"
 }
@@ -37,7 +41,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range b.Gates {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -46,7 +50,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, cp := range b.Checkpoints {
 
-		err := walkElement(ctx, cp, cb)
+		err := cb(ctx, cp)
 
 		if err != nil {
 			return nil
@@ -55,7 +59,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range b.Galleries {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -64,7 +68,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, pa := range b.PublicArt {
 
-		err := walkElement(ctx, pa, cb)
+		err := cb(ctx, pa)
 
 		if err != nil {
 			return nil
@@ -73,7 +77,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, od := range b.ObservationDecks {
 
-		err := walkElement(ctx, od, cb)
+		err := cb(ctx, od)
 
 		if err != nil {
 			return nil
@@ -82,7 +86,7 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, m := range b.Museums {
 
-		err := walkElement(ctx, m, cb)
+		err := cb(ctx, m)
 
 		if err != nil {
 			return nil
@@ -93,6 +97,8 @@ func (b *BoardingArea) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 }
 
 func (b *BoardingArea) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
+
+	return elementTree(ctx, b, r, wr, indent)
 
 	b_id := b.WhosOnFirstId
 	fmt.Fprintf(wr, "%s (boardingarea) %d %s\n", strings.Repeat("\t", indent), b_id, name(ctx, r, b_id))

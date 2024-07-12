@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,13 +13,17 @@ import (
 
 // type Gate is a lightweight data structure to represent passenger gates at SFO.
 type Gate struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfo:id"`
 }
 
 func (g *Gate) Id() int64 {
 	return g.WhosOnFirstId
+}
+
+func (g *Gate) AltId() string {
+	return g.SFOId
 }
 
 func (g *Gate) Placetype() string {
@@ -32,12 +35,7 @@ func (g *Gate) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 }
 
 func (g *Gate) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	g_id := g.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (gate) %d %s\n", strings.Repeat("\t", indent), g_id, name(ctx, r, g_id))
-
-	return nil
-
+	return elementTree(ctx, g, r, wr, indent)
 }
 
 func DeriveGates(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gate, error) {

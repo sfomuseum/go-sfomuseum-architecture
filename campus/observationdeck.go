@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,7 +13,7 @@ import (
 
 // type ObservationDeck is a lightweight data structure to represent observation decks at SFO with pointers its descendants.
 type ObservationDeck struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	PublicArt     []*PublicArt `json:"publicart,omitempty"`
@@ -25,6 +24,10 @@ func (od *ObservationDeck) Id() int64 {
 	return od.WhosOnFirstId
 }
 
+func (od *ObservationDeck) AltId() string {
+	return od.SFOId
+}
+
 func (od *ObservationDeck) Placetype() string {
 	return "observationdeck"
 }
@@ -33,7 +36,7 @@ func (od *ObservationDeck) Walk(ctx context.Context, cb ElementCallbackFunc) err
 
 	for _, pa := range od.PublicArt {
 
-		err := walkElement(ctx, pa, cb)
+		err := cb(ctx, pa)
 
 		if err != nil {
 			return nil
@@ -42,7 +45,7 @@ func (od *ObservationDeck) Walk(ctx context.Context, cb ElementCallbackFunc) err
 
 	for _, g := range od.Galleries {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -52,31 +55,8 @@ func (od *ObservationDeck) Walk(ctx context.Context, cb ElementCallbackFunc) err
 	return nil
 }
 
-func (ob *ObservationDeck) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	ob_id := ob.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (observation deck) %d %s\n", strings.Repeat("\t", indent), ob_id, name(ctx, r, ob_id))
-
-	for _, g := range ob.Galleries {
-
-		err := g.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode gallery as tree, %w", err)
-		}
-	}
-
-	for _, p := range ob.PublicArt {
-
-		err := p.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode public art as tree, %w", err)
-		}
-	}
-
-	return nil
-
+func (od *ObservationDeck) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
+	return elementTree(ctx, od, r, wr, indent)
 }
 
 func DeriveObservationDecks(ctx context.Context, db *sql.DB, t_id int64) ([]*ObservationDeck, error) {

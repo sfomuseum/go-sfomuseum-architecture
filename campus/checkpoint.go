@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,13 +13,17 @@ import (
 
 // type Checkpoint is a lightweight data structure to represent security checkpoints at SFO.
 type Checkpoint struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfo:id"`
 }
 
 func (c *Checkpoint) Id() int64 {
 	return c.WhosOnFirstId
+}
+
+func (c *Checkpoint) AltId() string {
+	return c.SFOId
 }
 
 func (c *Checkpoint) Placetype() string {
@@ -33,11 +36,7 @@ func (c *Checkpoint) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 func (cp *Checkpoint) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
-	cp_id := cp.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (checkpoint) %d %s\n", strings.Repeat("\t", indent), cp_id, name(ctx, r, cp_id))
-
-	return nil
-
+	return elementTree(ctx, cp, r, wr, indent)
 }
 
 func DeriveCheckpoints(ctx context.Context, db *sql.DB, parent_id int64) ([]*Checkpoint, error) {

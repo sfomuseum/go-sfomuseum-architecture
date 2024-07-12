@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,7 +13,7 @@ import (
 
 // type Terminal is a lightweight data structure to represent terminals at SFO with pointers its descendants.
 type Terminal struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64           `json:"id"`
 	SFOId         string          `json:"sfo:id"`
 	CommonAreas   []*CommonArea   `json:"commonareas,omitempty"`
@@ -25,6 +24,10 @@ func (t *Terminal) Id() int64 {
 	return t.WhosOnFirstId
 }
 
+func (t *Terminal) AltId() string {
+	return t.SFOId
+}
+
 func (t *Terminal) Placetype() string {
 	return "terminal"
 }
@@ -33,7 +36,7 @@ func (t *Terminal) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, ba := range t.BoardingAreas {
 
-		err := walkElement(ctx, ba, cb)
+		err := cb(ctx, ba)
 
 		if err != nil {
 			return err
@@ -42,7 +45,7 @@ func (t *Terminal) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, ca := range t.CommonAreas {
 
-		err := walkElement(ctx, ca, cb)
+		err := cb(ctx, ca)
 
 		if err != nil {
 			return err
@@ -53,30 +56,7 @@ func (t *Terminal) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 }
 
 func (t *Terminal) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	t_id := t.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (terminal) %d %s\n", strings.Repeat("\t", indent), t_id, name(ctx, r, t_id))
-
-	for _, b := range t.BoardingAreas {
-
-		err := b.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode boarding area as tree, %w", err)
-		}
-	}
-
-	for _, c := range t.CommonAreas {
-
-		err := c.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode common area as tree, %w", err)
-		}
-	}
-
-	return nil
-
+	return elementTree(ctx, t, r, wr, indent)
 }
 
 func DeriveTerminals(ctx context.Context, db *sql.DB, sfo_id int64) ([]*Terminal, error) {

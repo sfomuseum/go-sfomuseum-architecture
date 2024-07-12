@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,30 +13,30 @@ import (
 
 // type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.
 type Gallery struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64  `json:"id"`
 	SFOId         string `json:"sfomuseum:id"`
 }
 
-func (c *Gallery) Id() int64 {
-	return c.WhosOnFirstId
+func (g *Gallery) Id() int64 {
+	return g.WhosOnFirstId
 }
 
-func (c *Gallery) Placetype() string {
+func (g *Gallery) AltId() string {
+	return g.SFOId
+}
+
+func (g *Gallery) Placetype() string {
 	return "gallery"
 }
 
-func (c *Gallery) Walk(ctx context.Context, cb ElementCallbackFunc) error {
+func (g *Gallery) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 	return nil
 }
 
 func (g *Gallery) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 
-	g_id := g.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (gallery) %d %s\n", strings.Repeat("\t", indent), g_id, name(ctx, r, g_id))
-
-	return nil
-
+	return elementTree(ctx, g, r, wr, indent)
 }
 
 func DeriveGalleries(ctx context.Context, db *sql.DB, parent_id int64) ([]*Gallery, error) {

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 
 	"github.com/tidwall/gjson"
 	"github.com/whosonfirst/go-reader"
@@ -14,7 +13,7 @@ import (
 
 // type Museum is a lightweight data structure to represent dedicated Museum-related areas, distinct from galleries, at SFO  with pointers to its descendants.
 type Museum struct {
-	Element
+	Element       `json:",omitempty"`
 	WhosOnFirstId int64        `json:"id"`
 	SFOId         string       `json:"sfo:id"`
 	Galleries     []*Gallery   `json:"galleries,omitempty"`
@@ -25,6 +24,10 @@ func (m *Museum) Id() int64 {
 	return m.WhosOnFirstId
 }
 
+func (m *Museum) AltId() string {
+	return m.SFOId
+}
+
 func (m *Museum) Placetype() string {
 	return "museum"
 }
@@ -33,7 +36,7 @@ func (m *Museum) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, pa := range m.PublicArt {
 
-		err := walkElement(ctx, pa, cb)
+		err := cb(ctx, pa)
 
 		if err != nil {
 			return nil
@@ -42,7 +45,7 @@ func (m *Museum) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 
 	for _, g := range m.Galleries {
 
-		err := walkElement(ctx, g, cb)
+		err := cb(ctx, g)
 
 		if err != nil {
 			return nil
@@ -53,30 +56,7 @@ func (m *Museum) Walk(ctx context.Context, cb ElementCallbackFunc) error {
 }
 
 func (m *Museum) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
-
-	m_id := m.WhosOnFirstId
-	fmt.Fprintf(wr, "%s (museum) %d %s\n", strings.Repeat("\t", indent), m_id, name(ctx, r, m_id))
-
-	for _, g := range m.Galleries {
-
-		err := g.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode gallery as tree, %w", err)
-		}
-	}
-
-	for _, p := range m.PublicArt {
-
-		err := p.AsTree(ctx, r, wr, indent+1)
-
-		if err != nil {
-			return fmt.Errorf("Failed to encode public art as tree, %w", err)
-		}
-	}
-
-	return nil
-
+	return elementTree(ctx, m, r, wr, indent)
 }
 
 func DeriveMuseums(ctx context.Context, db *sql.DB, parent_id int64) ([]*Museum, error) {
