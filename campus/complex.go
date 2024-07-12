@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 
 	"github.com/paulmach/orb/geojson"
 	"github.com/whosonfirst/go-reader"
@@ -182,6 +183,39 @@ func (c *Complex) AsGeoJSONLayers(ctx context.Context, r reader.Reader) (map[str
 
 func (c *Complex) AsTree(ctx context.Context, r reader.Reader, wr io.Writer, indent int) error {
 	return elementTree(ctx, c, r, wr, indent)
+}
+
+func (c *Complex) DeriveAltLookup(ctx context.Context) (map[string]int64, error) {
+
+	lookup_map := make(map[string]int64)
+
+	var cb func(ctx context.Context, el Element) error
+
+	cb = func(ctx context.Context, el Element) error {
+
+		alt := el.AltId()
+		id := el.Id()
+
+		other_id, exists := lookup_map[alt]
+
+		if exists {
+			slog.Warn("Duplicate key", "placetype", el.Placetype(), "alt", alt, "id", id, "other", other_id)
+		} else {
+			lookup_map[alt] = id
+			// slog.Info("Current", "alt", alt, "id", id)
+		}
+
+		el.Walk(ctx, cb)
+		return nil
+	}
+
+	err := c.Walk(ctx, cb)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return lookup_map, nil
 }
 
 func DeriveComplex(ctx context.Context, db *sql.DB, complex_id int64) (*Complex, error) {
