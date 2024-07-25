@@ -36,8 +36,8 @@ func main() {
 			log.Fatal(err)
 		}
 
-		for _, a := range results {
-			fmt.Println(a)
+		for _, r := range results {
+			fmt.Println(r)
 		}
 	}
 }

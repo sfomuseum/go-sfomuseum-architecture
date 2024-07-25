@@ -30,7 +30,7 @@ type Gallery struct {
 
 // String() will return the name of the gallery.
 func (g *Gallery) String() string {
-	return fmt.Sprintf("%d#%d %s-%s %s", g.WhosOnFirstId, g.SFOMuseumId, g.Inception, g.Cessation, g.Name)
+	return fmt.Sprintf("%d#%d %s %s-%s (%d)", g.WhosOnFirstId, g.SFOMuseumId, g.Name, g.Inception, g.Cessation, g.IsCurrent)
 }
 
 // Return the Gallery matching 'code' that was active for 'date'. Multiple matches throw an error.

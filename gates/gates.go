@@ -26,7 +26,7 @@ type Gate struct {
 
 // String() will return the name of the gate.
 func (g *Gate) String() string {
-	return fmt.Sprintf("%d %s (%d)", g.WhosOnFirstId, g.Name, g.IsCurrent)
+	return fmt.Sprintf("%d %s %s-%s (%d)", g.WhosOnFirstId, g.Name, g.Inception, g.Cessation, g.IsCurrent)
 }
 
 // Return the Gate matching 'code' that was active for 'date'. Multiple matches throw an error.
