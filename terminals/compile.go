@@ -86,12 +86,17 @@ func CompileTerminalsData(ctx context.Context, iterator_uri string, iterator_sou
 
 		}
 
+		inception := properties.Inception(body)
+		cessation := properties.Cessation(body)
+
 		g := &Terminal{
 			WhosOnFirstId:  wof_id,
 			Name:           wof_name,
 			IsCurrent:      fl.Flag(),
 			PreferredNames: preferred_names,
 			VariantNames:   variant_names,
+			Inception:      inception,
+			Cessation:      cessation,
 		}
 
 		sfom_rsp := gjson.GetBytes(body, "properties.sfomuseum:terminal_id")
