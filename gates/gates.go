@@ -4,6 +4,7 @@ package gates
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/sfomuseum/go-edtf/cmp"
 	"github.com/sfomuseum/go-sfomuseum-architecture"
@@ -158,21 +159,25 @@ func FindAllGatesForDateWithLookup(ctx context.Context, lookup architecture.Look
 		g := r.(*Gate)
 
 		inception := g.Inception
-		cessation := g.Inception
+		cessation := g.Cessation
 
 		is_between, err := cmp.IsBetween(date, inception, cessation)
 
 		if err != nil {
+			slog.Debug("Failed to determine whether gate matches date conditions", "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation, "error", err)
 			continue
 		}
 
 		if !is_between {
+			slog.Debug("Gate does not match date conditions", "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
 			continue
 		}
 
+		slog.Debug("Gate DOES match date conditions", "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
 		gates = append(gates, g)
 		break
 	}
 
+	slog.Debug("Return gates", "code", code, "date", date, "count", len(gates))
 	return gates, nil
 }
