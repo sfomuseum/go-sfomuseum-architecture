@@ -22,6 +22,10 @@ type Terminal struct {
 	PreferredNames []string `json:"name:preferred,omitempty"`
 	// The list of name:{LANG}_x_variant names for this terminal
 	VariantNames []string `json:"name:variant,omitempty"`
+	// The (EDTF) inception date for the gallery
+	Inception string `json:"edtf:inception"`
+	// The (EDTF) cessation date for the gallery
+	Cessation string `json:"edtf:cessation"`	
 }
 
 // String() will return the name of the terminal.

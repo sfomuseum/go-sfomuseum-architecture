@@ -17,6 +17,10 @@ type Gate struct {
 	Name string `json:"wof:name"`
 	// A Who's On First "existential" (`KnownUnknownFlag`) flag signaling the gate's status
 	IsCurrent int64 `json:"mz:is_current"`
+	// The (EDTF) inception date for the gallery
+	Inception string `json:"edtf:inception"`
+	// The (EDTF) cessation date for the gallery
+	Cessation string `json:"edtf:cessation"`	
 }
 
 // String() will return the name of the gate.
@@ -108,25 +112,8 @@ func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, 
 
 		g := r.(*Gate)
 
-		// What to do...
-		
-		var inception string
-		var cessation string
-		
-		/*
-
-		// wof_id := g.WhosOnFirstId
-		body, err := load_feature(ctx, wof_id)
-		
-		if err != nil {
-			logger.Error("Failed to load feature", "id", wof_id, "error", err)
-			continue
-		}
-		
-		inception := properties.Inception(body)
-		cessation := properties.Cessation(body)
-
-		*/
+		inception := g.Inception
+		cessation := g.Inception
 		
 		is_between, err := cmp.IsBetween(date, inception, cessation)
 		
