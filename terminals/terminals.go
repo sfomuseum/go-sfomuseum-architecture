@@ -5,6 +5,9 @@ import (
 	"context"
 	"fmt"
 
+	"log/slog"
+
+	"github.com/sfomuseum/go-edtf/cmp"
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
@@ -31,6 +34,30 @@ type Terminal struct {
 // String() will return the name of the terminal.
 func (g *Terminal) String() string {
 	return fmt.Sprintf("%d %s (%d)", g.WhosOnFirstId, g.Name, g.IsCurrent)
+}
+
+// Return the Terminal matching 'code' that was active for 'date'. Multiple matches throw an error.
+func FindTerminalForDate(ctx context.Context, code string, date string) (*Terminal, error) {
+
+	lookup, err := NewLookup(ctx, "")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new lookup, %w", err)
+	}
+
+	return FindTerminalForDateWithLookup(ctx, lookup, code, date)
+}
+
+// Return all the Terminals matching 'code' that were active for 'date'.
+func FindAllTerminalsForDate(ctx context.Context, code string, date string) ([]*Terminal, error) {
+
+	lookup, err := NewLookup(ctx, "")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new lookup, %w", err)
+	}
+
+	return FindAllTerminalsForDateWithLookup(ctx, lookup, code, date)
 }
 
 // Return the current Terminal matching 'code'. Multiple matches throw an error.
@@ -101,4 +128,63 @@ func FindTerminalsCurrentWithLookup(ctx context.Context, lookup architecture.Loo
 	}
 
 	return current, nil
+}
+
+// Return the Terminal matching 'code' that was active for 'date' using 'lookup'. Multiple matches throw an error.
+func FindTerminalForDateWithLookup(ctx context.Context, lookup architecture.Lookup, code string, date string) (*Terminal, error) {
+
+	terminals, err := FindAllTerminalsForDateWithLookup(ctx, lookup, code, date)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch len(terminals) {
+	case 0:
+		return nil, NotFound{code}
+	case 1:
+		return terminals[0], nil
+	default:
+		return nil, MultipleCandidates{code}
+	}
+
+}
+
+// Return all the Terminals matching 'code' that were active for 'date' using 'lookup'.
+func FindAllTerminalsForDateWithLookup(ctx context.Context, lookup architecture.Lookup, code string, date string) ([]*Terminal, error) {
+
+	rsp, err := lookup.Find(ctx, code)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find terminals for code, %w", err)
+	}
+
+	terminals := make([]*Terminal, 0)
+
+	for _, r := range rsp {
+
+		g := r.(*Terminal)
+
+		inception := g.Inception
+		cessation := g.Cessation
+
+		is_between, err := cmp.IsBetween(date, inception, cessation)
+
+		if err != nil {
+			slog.Debug("Failed to determine whether terminal matches date conditions", "code", code, "date", date, "terminal", g.Name, "inception", inception, "cessation", cessation, "error", err)
+			continue
+		}
+
+		if !is_between {
+			slog.Debug("Terminal does not match date conditions", "code", code, "date", date, "terminal", g.Name, "inception", inception, "cessation", cessation)
+			continue
+		}
+
+		slog.Debug("Terminal DOES match date conditions", "code", code, "date", date, "terminal", g.Name, "inception", inception, "cessation", cessation)
+		terminals = append(terminals, g)
+		break
+	}
+
+	slog.Debug("Return terminals", "code", code, "date", date, "count", len(terminals))
+	return terminals, nil
 }
