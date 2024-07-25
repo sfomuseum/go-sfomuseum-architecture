@@ -62,10 +62,15 @@ func CompileGatesData(ctx context.Context, iterator_uri string, iterator_sources
 			return fmt.Errorf("Failed to determine is current for %s, %v", path, err)
 		}
 
+		inception := properties.Inception(body)
+		cessation := properties.Cessation(body)
+
 		g := &Gate{
 			WhosOnFirstId: wof_id,
 			Name:          wof_name,
 			IsCurrent:     fl.Flag(),
+			Inception:     inception,
+			Cessation:     cessation,
 		}
 
 		mu.Lock()

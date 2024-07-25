@@ -25,7 +25,7 @@ type Terminal struct {
 	// The (EDTF) inception date for the gallery
 	Inception string `json:"edtf:inception"`
 	// The (EDTF) cessation date for the gallery
-	Cessation string `json:"edtf:cessation"`	
+	Cessation string `json:"edtf:cessation"`
 }
 
 // String() will return the name of the terminal.

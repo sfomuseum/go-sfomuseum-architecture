@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sfomuseum/go-edtf/cmp"	
+	"github.com/sfomuseum/go-edtf/cmp"
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
@@ -20,7 +20,7 @@ type Gate struct {
 	// The (EDTF) inception date for the gallery
 	Inception string `json:"edtf:inception"`
 	// The (EDTF) cessation date for the gallery
-	Cessation string `json:"edtf:cessation"`	
+	Cessation string `json:"edtf:cessation"`
 }
 
 // String() will return the name of the gate.
@@ -114,17 +114,17 @@ func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, 
 
 		inception := g.Inception
 		cessation := g.Inception
-		
+
 		is_between, err := cmp.IsBetween(date, inception, cessation)
-		
+
 		if err != nil {
 			continue
 		}
-		
+
 		if !is_between {
 			continue
 		}
-		
+
 		gate = g
 		break
 	}
