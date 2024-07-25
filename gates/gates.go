@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sfomuseum/go-edtf/cmp"	
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
@@ -91,4 +92,59 @@ func FindGatesCurrentWithLookup(ctx context.Context, lookup architecture.Lookup,
 	}
 
 	return current, nil
+}
+
+func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, code string, date string) (*Gate, error) {
+
+	rsp, err := lookup.Find(ctx, code)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to find gates for code, %w", err)
+	}
+
+	var gate *Gate
+
+	for _, r := range rsp {
+
+		g := r.(*Gate)
+
+		// What to do...
+		
+		var inception string
+		var cessation string
+		
+		/*
+
+		// wof_id := g.WhosOnFirstId
+		body, err := load_feature(ctx, wof_id)
+		
+		if err != nil {
+			logger.Error("Failed to load feature", "id", wof_id, "error", err)
+			continue
+		}
+		
+		inception := properties.Inception(body)
+		cessation := properties.Cessation(body)
+
+		*/
+		
+		is_between, err := cmp.IsBetween(date, inception, cessation)
+		
+		if err != nil {
+			continue
+		}
+		
+		if !is_between {
+			continue
+		}
+		
+		gate = g
+		break
+	}
+
+	if gate == nil {
+		return nil, NotFound{code}
+	}
+
+	return gate, nil
 }
