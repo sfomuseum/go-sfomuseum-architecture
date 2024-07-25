@@ -22,7 +22,8 @@ func TestGalleriesLookup(t *testing.T) {
 	*/
 
 	wofid_tests := map[string]int64{
-		"2D": 1745882459, // 2D Sky Terrace Platform
+		// "2D": 1745882459, // 2D Sky Terrace Platform
+		"2D": 1729813701,
 	}
 
 	ctx := context.Background()
