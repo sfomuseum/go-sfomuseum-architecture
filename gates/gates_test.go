@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+type gateTest struct {
+	Id   int64
+	Code string
+	Date string
+}
+
 func TestFindCurrentGate(t *testing.T) {
 
 	tests := map[string]int64{
@@ -25,4 +31,28 @@ func TestFindCurrentGate(t *testing.T) {
 			t.Fatalf("Unexpected ID for gate %s. Got %d but expected %d", code, g.WhosOnFirstId, id)
 		}
 	}
+}
+
+func TestFindGateForDate(t *testing.T) {
+
+	tests := []*gateTest{
+		&gateTest{Id: 1763588201, Code: "B25", Date: "2021-11-09"},
+		&gateTest{Id: 1914600935, Code: "E13", Date: "2024-07-23"},
+	}
+
+	ctx := context.Background()
+
+	for _, gate := range tests {
+
+		g, err := FindGateForDate(ctx, gate.Code, gate.Date)
+
+		if err != nil {
+			t.Fatalf("Failed to find current gate for %s, %v", gate.Code, err)
+		}
+
+		if g.WhosOnFirstId != gate.Id {
+			t.Fatalf("Unexpected ID for gate %s. Got %d but expected %d", gate.Code, g.WhosOnFirstId, gate.Id)
+		}
+	}
+
 }

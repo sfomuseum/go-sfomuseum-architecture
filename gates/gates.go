@@ -28,6 +28,30 @@ func (g *Gate) String() string {
 	return fmt.Sprintf("%d %s (%d)", g.WhosOnFirstId, g.Name, g.IsCurrent)
 }
 
+// Return the Gate matching 'code' that was active for 'date'. Multiple matches throw an error.
+func FindGateForDate(ctx context.Context, code string, date string) (*Gate, error) {
+
+	lookup, err := NewLookup(ctx, "")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new lookup, %w", err)
+	}
+
+	return FindGateForDateWithLookup(ctx, lookup, code, date)
+}
+
+// Return all the Gates matching 'code' that were active for 'date'.
+func FindAllGatesForDate(ctx context.Context, code string, date string) ([]*Gate, error) {
+
+	lookup, err := NewLookup(ctx, "")
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create new lookup, %w", err)
+	}
+
+	return FindAllGatesForDateWithLookup(ctx, lookup, code, date)
+}
+
 // Return the current Gate matching 'code'. Multiple matches throw an error.
 func FindCurrentGate(ctx context.Context, code string) (*Gate, error) {
 
@@ -98,7 +122,28 @@ func FindGatesCurrentWithLookup(ctx context.Context, lookup architecture.Lookup,
 	return current, nil
 }
 
+// Return the Gate matching 'code' that was active for 'date' using 'lookup'. Multiple matches throw an error.
 func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, code string, date string) (*Gate, error) {
+
+	gates, err := FindAllGatesForDateWithLookup(ctx, lookup, code, date)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch len(gates) {
+	case 0:
+		return nil, NotFound{code}
+	case 1:
+		return gates[0], nil
+	default:
+		return nil, MultipleCandidates{code}
+	}
+
+}
+
+// Return all the Gates matching 'code' that were active for 'date' using 'lookup'.
+func FindAllGatesForDateWithLookup(ctx context.Context, lookup architecture.Lookup, code string, date string) ([]*Gate, error) {
 
 	rsp, err := lookup.Find(ctx, code)
 
@@ -106,7 +151,7 @@ func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, 
 		return nil, fmt.Errorf("Failed to find gates for code, %w", err)
 	}
 
-	var gate *Gate
+	gates := make([]*Gate, 0)
 
 	for _, r := range rsp {
 
@@ -125,13 +170,9 @@ func FindGateForDateWithLookup(ctx context.Context, lookup architecture.Lookup, 
 			continue
 		}
 
-		gate = g
+		gates = append(gates, g)
 		break
 	}
 
-	if gate == nil {
-		return nil, NotFound{code}
-	}
-
-	return gate, nil
+	return gates, nil
 }
