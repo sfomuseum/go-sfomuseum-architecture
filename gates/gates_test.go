@@ -2,7 +2,7 @@ package gates
 
 import (
 	"context"
-	"log/slog"
+	_ "log/slog"
 	"testing"
 )
 
@@ -14,10 +14,12 @@ type gateTest struct {
 
 func TestFindCurrentGate(t *testing.T) {
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	// slog.SetLogLoggerLevel(slog.LevelDebug)
+
+	// "A9": 1763588417,
 
 	tests := map[string]int64{
-		"A9": 1763588417,
+		"A9": 1914601013,
 	}
 
 	ctx := context.Background()
@@ -38,7 +40,7 @@ func TestFindCurrentGate(t *testing.T) {
 
 func TestFindGateForDate(t *testing.T) {
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	// slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	tests := []*gateTest{
 		&gateTest{Id: 1763588201, Code: "B25", Date: "2021-11-09"},
