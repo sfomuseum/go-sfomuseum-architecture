@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	_ "log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -180,7 +180,7 @@ func (l *GalleriesLookup) Find(ctx context.Context, code string) ([]interface{},
 		return nil, fmt.Errorf("Code '%s' not found", code)
 	}
 
-	galleries_list := make([]interface{}, 0)
+	galleries := make([]*Gallery, 0)
 
 	for _, p := range pointers.([]string) {
 
@@ -194,7 +194,27 @@ func (l *GalleriesLookup) Find(ctx context.Context, code string) ([]interface{},
 			return nil, fmt.Errorf("Invalid pointer '%s'", p)
 		}
 
-		galleries_list = append(galleries_list, row.(*Gallery))
+		galleries = append(galleries, row.(*Gallery))
+	}
+
+	sort.Slice(galleries, func(i, j int) bool {
+
+		inception_i := galleries[i].Inception
+		cessation_i := galleries[i].Cessation
+
+		inception_j := galleries[j].Inception
+		cessation_j := galleries[j].Cessation
+
+		date_i := fmt.Sprintf("%s - %s", inception_i, cessation_i)
+		date_j := fmt.Sprintf("%s - %s", inception_j, cessation_j)
+
+		return date_i < date_j
+	})
+
+	galleries_list := make([]interface{}, len(galleries))
+
+	for idx, g := range galleries {
+		galleries_list[idx] = g
 	}
 
 	return galleries_list, nil

@@ -10,6 +10,9 @@ import (
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
+// To do: Make these sortable by inception/cessation
+type Gates []*Gate
+
 // type Gate is a struct representing a passenger gate at SFO.
 type Gate struct {
 	// The Who's On First ID associated with this gate.

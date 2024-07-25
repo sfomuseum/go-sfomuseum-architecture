@@ -8,6 +8,7 @@ import (
 	_ "log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -180,7 +181,7 @@ func (l *TerminalsLookup) Find(ctx context.Context, code string) ([]interface{},
 		return nil, fmt.Errorf("Code '%s' not found", code)
 	}
 
-	terminals_list := make([]interface{}, 0)
+	terminals := make([]*Terminal, 0)
 
 	for _, p := range pointers.([]string) {
 
@@ -194,7 +195,27 @@ func (l *TerminalsLookup) Find(ctx context.Context, code string) ([]interface{},
 			return nil, fmt.Errorf("Invalid pointer '%s'", p)
 		}
 
-		terminals_list = append(terminals_list, row.(*Terminal))
+		terminals = append(terminals, row.(*Terminal))
+	}
+
+	sort.Slice(terminals, func(i, j int) bool {
+
+		inception_i := terminals[i].Inception
+		cessation_i := terminals[i].Cessation
+
+		inception_j := terminals[j].Inception
+		cessation_j := terminals[j].Cessation
+
+		date_i := fmt.Sprintf("%s - %s", inception_i, cessation_i)
+		date_j := fmt.Sprintf("%s - %s", inception_j, cessation_j)
+
+		return date_i < date_j
+	})
+
+	terminals_list := make([]interface{}, len(terminals))
+
+	for idx, t := range terminals {
+		terminals_list[idx] = t
 	}
 
 	return terminals_list, nil

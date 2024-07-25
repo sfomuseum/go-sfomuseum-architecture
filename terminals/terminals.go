@@ -11,6 +11,9 @@ import (
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )
 
+// To do: Make these sortable by inception/cessation
+type Terminals []*Terminal
+
 // type Terminal is a struct representing a passenger terminal at SFO.
 type Terminal struct {
 	// The Who's On First ID associated with this terminal.
