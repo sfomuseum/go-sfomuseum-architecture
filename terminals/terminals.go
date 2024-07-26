@@ -4,7 +4,6 @@ package terminals
 import (
 	"context"
 	"fmt"
-
 	"log/slog"
 
 	"github.com/sfomuseum/go-edtf/cmp"

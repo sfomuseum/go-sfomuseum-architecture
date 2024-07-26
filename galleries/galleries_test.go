@@ -2,8 +2,8 @@ package galleries
 
 import (
 	"context"
+	"log/slog"
 	"testing"
-	// "log/slog"
 )
 
 type galleryTest struct {
@@ -37,7 +37,7 @@ func TestFindCurrentGallery(t *testing.T) {
 
 func TestFindGalleryForDate(t *testing.T) {
 
-	// slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	tests := []*galleryTest{
 		&galleryTest{Id: 1763594985, Code: "2E", Date: "2022"},
