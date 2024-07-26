@@ -179,7 +179,6 @@ func FindAllGalleriesForDateWithLookup(ctx context.Context, lookup architecture.
 
 		slog.Debug("Gallery DOES match date conditions", "code", code, "date", date, "gallery", g.Name, "inception", inception, "cessation", cessation)
 		galleries = append(galleries, g)
-		break
 	}
 
 	slog.Debug("Return galleries", "code", code, "date", date, "count", len(galleries))
