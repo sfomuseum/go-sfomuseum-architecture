@@ -44,7 +44,7 @@ func TestFindGalleryForDate(t *testing.T) {
 		&galleryTest{Id: 1914650743, Code: "1G", Date: "2024-07-23"},
 		&galleryTest{Id: 1914600907, Code: "3F", Date: "2024-06-18"},
 		&galleryTest{Id: 1360392589, Code: "F04", Date: "2002"},
-		// &galleryTest{Id: 1159157059, Code: "F-04", Date: "2017-12~"},
+		&galleryTest{Id: 1914601189, Code: "42", Date: "2024-06-17"},
 	}
 
 	ctx := context.Background()
