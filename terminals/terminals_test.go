@@ -2,8 +2,8 @@ package terminals
 
 import (
 	"context"
+	"log/slog"
 	"testing"
-	// "log/slog"
 )
 
 type terminalTest struct {
@@ -15,7 +15,6 @@ type terminalTest struct {
 func TestFindCurrentTerminal(t *testing.T) {
 
 	tests := map[string]int64{
-		// "T2": 1763588123,
 		"T2": 1914601345,
 	}
 
@@ -37,7 +36,7 @@ func TestFindCurrentTerminal(t *testing.T) {
 
 func TestFindTerminalForDate(t *testing.T) {
 
-	// slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	tests := []*terminalTest{
 		&terminalTest{Id: 1763588123, Code: "T2", Date: "2023"},

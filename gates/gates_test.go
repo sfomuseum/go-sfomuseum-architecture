@@ -2,7 +2,7 @@ package gates
 
 import (
 	"context"
-	_ "log/slog"
+	"log/slog"
 	"testing"
 )
 
@@ -40,11 +40,14 @@ func TestFindCurrentGate(t *testing.T) {
 
 func TestFindGateForDate(t *testing.T) {
 
-	// slog.SetLogLoggerLevel(slog.LevelDebug)
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	tests := []*gateTest{
-		&gateTest{Id: 1763588201, Code: "B25", Date: "2021-11-09"},
+		&gateTest{Id: 1745882165, Code: "B25", Date: "2021-11-09"},
 		&gateTest{Id: 1914600935, Code: "E13", Date: "2024-07-23"},
+		&gateTest{Id: 1914601021, Code: "A11", Date: "2024-07-25"},
+		&gateTest{Id: 1763588293, Code: "F5", Date: "2022"},
+		&gateTest{Id: 1930457221, Code: "F5", Date: "2024-07-25"},
 	}
 
 	ctx := context.Background()

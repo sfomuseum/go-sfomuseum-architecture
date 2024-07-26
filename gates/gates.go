@@ -172,11 +172,11 @@ func FindAllGatesForDateWithLookup(ctx context.Context, lookup architecture.Look
 		}
 
 		if !is_between {
-			slog.Debug("Gate does not match date conditions", "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
+			slog.Debug("Gate does not match date conditions", "id", g.WhosOnFirstId, "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
 			continue
 		}
 
-		slog.Debug("Gate DOES match date conditions", "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
+		slog.Debug("Gate DOES match date conditions", "id", g.WhosOnFirstId, "code", code, "date", date, "gate", g.Name, "inception", inception, "cessation", cessation)
 		gates = append(gates, g)
 		break
 	}

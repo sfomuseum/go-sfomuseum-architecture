@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	"github.com/tidwall/gjson"
@@ -27,6 +28,10 @@ func CompileGalleriesData(ctx context.Context, iterator_uri string, iterator_sou
 			return nil
 		default:
 			// pass
+		}
+
+		if strings.HasSuffix(path, "~") {
+			return nil
 		}
 
 		_, uri_args, err := uri.ParseURI(path)

@@ -30,6 +30,10 @@ func CompileTerminalsData(ctx context.Context, iterator_uri string, iterator_sou
 			// pass
 		}
 
+		if strings.HasSuffix(path, "~") {
+			return nil
+		}
+
 		_, uri_args, err := uri.ParseURI(path)
 
 		if err != nil {
