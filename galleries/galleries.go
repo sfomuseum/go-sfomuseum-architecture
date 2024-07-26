@@ -177,8 +177,33 @@ func FindAllGalleriesForDateWithLookup(ctx context.Context, lookup architecture.
 			continue
 		}
 
-		slog.Debug("Gallery DOES match date conditions", "code", code, "date", date, "gallery", g.Name, "inception", inception, "cessation", cessation)
+		slog.Debug("Gallery DOES match date conditions", "code", code, "date", date, "gallery id", g.WhosOnFirstId, "gallery", g.Name, "inception", inception, "cessation", cessation)
 		galleries = append(galleries, g)
+	}
+
+	if len(galleries) > 1 {
+
+		/*
+
+			2024/07/26 14:38:57 DEBUG Gallery DOES match date conditions code=42 date=2024-06-17 gallery="AML 06 AML Photography" inception=2021-11-09 cessation=2024-06-17
+			2024/07/26 14:38:57 DEBUG Gallery DOES match date conditions code=42 date=2024-06-17 gallery="AML 06 AML Photography" inception=2024-06-17 cessation=..
+			2024/07/26 14:38:57 DEBUG Gallery DOES match date conditions code=42 date=2024-06-17 gallery="AML 06 AML Photography" inception=2024-06-17 cessation=..
+
+		*/
+
+		current_galleries := make([]*Gallery, 0)
+
+		for _, g := range galleries {
+
+			if g.IsCurrent == 1 {
+				// slog.Debug("CURRENT", "gallery", g.WhosOnFirstId)
+				current_galleries = append(current_galleries, g)
+			}
+		}
+
+		if len(current_galleries) > 1 {
+			galleries = current_galleries
+		}
 	}
 
 	slog.Debug("Return galleries", "code", code, "date", date, "count", len(galleries))
