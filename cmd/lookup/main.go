@@ -1,16 +1,14 @@
 package main
 
 import (
-	_ "github.com/sfomuseum/go-sfomuseum-architecture/galleries"
-	_ "github.com/sfomuseum/go-sfomuseum-architecture/gates"
-	_ "github.com/sfomuseum/go-sfomuseum-architecture/terminals"
-)
-
-import (
 	"context"
 	"flag"
 	"fmt"
 	"log"
+
+	_ "github.com/sfomuseum/go-sfomuseum-architecture/galleries"
+	_ "github.com/sfomuseum/go-sfomuseum-architecture/gates"
+	_ "github.com/sfomuseum/go-sfomuseum-architecture/terminals"
 
 	"github.com/sfomuseum/go-sfomuseum-architecture"
 )

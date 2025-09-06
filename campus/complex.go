@@ -9,8 +9,8 @@ import (
 	"log/slog"
 
 	"github.com/paulmach/orb/geojson"
-	"github.com/whosonfirst/go-reader"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
+	"github.com/whosonfirst/go-reader/v2"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader/v2"
 )
 
 // SFO Terminal Complex (1954~ to 1963~)

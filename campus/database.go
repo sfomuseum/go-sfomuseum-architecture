@@ -6,22 +6,20 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/aaronland/go-sqlite"
-	aa_database "github.com/aaronland/go-sqlite/database"
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
-	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
-	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
+	"github.com/whosonfirst/go-whosonfirst-database-sqlite"
+	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
+	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )
 
 var WARN_IS_CURRENT = true
 
 func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*sql.DB, error) {
 
-	driver := "sqlite3"
-
-	db, err := aa_database.NewDBWithDriver(ctx, driver, dsn)
+	db, err := database.Open("sqlite3", dsn)
 
 	if err != nil {
 		return nil, err
@@ -77,21 +75,22 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 		StrictAltFiles: false,
 	}
 
-	record_func := index.SQLiteFeaturesLoadRecordFunc(record_opts)
+	// FIX ME
+	// record_func := index.SQLiteFeaturesLoadRecordFunc(record_opts)
 
-	idx_opts := &sql_index.SQLiteIndexerOptions{
-		DB:             db,
-		Tables:         to_index,
-		LoadRecordFunc: record_func,
+	idx_opts := &indexer.IndexOptions{
+		DB:     db,
+		Tables: to_index,
+		// LoadRecordFunc: record_func,
 	}
 
-	idx, err := sql_index.NewSQLiteIndexer(idx_opts)
+	idx, err := indexer.NewIndexer(idx_opts)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = idx.IndexPaths(ctx, iterator_uri, paths)
+	err = idx.IndexURIs(ctx, iterator_uri, paths)
 
 	if err != nil {
 		return nil, err
