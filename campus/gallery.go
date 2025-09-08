@@ -8,7 +8,7 @@ import (
 	"log/slog"
 
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 )
 
 // type Gallery is a lightweight data structure to represent SFO Museum galleries at SFO.

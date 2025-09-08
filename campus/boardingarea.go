@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 )
 
 // type BoardingArea is a lightweight data structure to represent boarding areas at SFO with pointers its descendants.

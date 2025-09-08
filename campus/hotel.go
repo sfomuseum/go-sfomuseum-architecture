@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 )
 
 // type Hotel is a lightweight data structure to represent garages at SFO with pointers its descendants.

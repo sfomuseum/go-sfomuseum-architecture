@@ -5,37 +5,35 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"net/url"
 
-	"github.com/aaronland/go-sqlite"
-	aa_database "github.com/aaronland/go-sqlite/database"
+	_ "github.com/mattn/go-sqlite3"
+
+	sfom_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-whosonfirst-sqlite-features-index"
-	"github.com/whosonfirst/go-whosonfirst-sqlite-features/tables"
-	sql_index "github.com/whosonfirst/go-whosonfirst-sqlite-index/v3"
+	wof_indexer "github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
+	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )
 
 var WARN_IS_CURRENT = true
 
 func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*sql.DB, error) {
 
-	driver := "sqlite3"
+	db_query := url.Values{}
+	db_query.Set("dsn", dsn)
 
-	db, err := aa_database.NewDBWithDriver(ctx, driver, dsn)
+	db_uri := url.URL{}
+	db_uri.Scheme = "sql"
+	db_uri.Host = "sqlite3"
 
-	if err != nil {
-		return nil, err
-	}
+	db_uri.RawQuery = db_query.Encode()
 
-	err = db.LiveHardDieFast()
+	db, err := sfom_sql.OpenWithURI(ctx, db_uri.String())
 
-	if err != nil {
-		return nil, err
-	}
+	to_index := make([]sfom_sql.Table, 0)
 
-	to_index := make([]sqlite.Table, 0)
-
-	geojson_opts, err := tables.DefaultGeoJSONTableOptions()
+	geojson_opts, err := wof_tables.DefaultGeoJSONTableOptions()
 
 	if err != nil {
 		return nil, err
@@ -43,7 +41,7 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	geojson_opts.IndexAltFiles = false
 
-	geojson_table, err := tables.NewGeoJSONTableWithDatabaseAndOptions(ctx, db, geojson_opts)
+	geojson_table, err := wof_tables.NewGeoJSONTableWithDatabaseAndOptions(ctx, db, geojson_opts)
 
 	if err != nil {
 		return nil, err
@@ -51,7 +49,7 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, geojson_table)
 
-	supersedes_table, err := tables.NewSupersedesTableWithDatabase(ctx, db)
+	supersedes_table, err := wof_tables.NewSupersedesTableWithDatabase(ctx, db)
 
 	if err != nil {
 		return nil, err
@@ -59,13 +57,13 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, supersedes_table)
 
-	spr_opts, err := tables.DefaultSPRTableOptions()
+	spr_opts, err := wof_tables.DefaultSPRTableOptions()
 
 	if err != nil {
 		return nil, err
 	}
 
-	spr_table, err := tables.NewSPRTableWithDatabaseAndOptions(ctx, db, spr_opts)
+	spr_table, err := wof_tables.NewSPRTableWithDatabaseAndOptions(ctx, db, spr_opts)
 
 	if err != nil {
 		return nil, err
@@ -73,37 +71,31 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, spr_table)
 
-	record_opts := &index.SQLiteFeaturesLoadRecordFuncOptions{
+	record_opts := &wof_indexer.LoadRecordFuncOptions{
 		StrictAltFiles: false,
 	}
 
-	record_func := index.SQLiteFeaturesLoadRecordFunc(record_opts)
+	record_func := wof_indexer.LoadRecordFunc(record_opts)
 
-	idx_opts := &sql_index.SQLiteIndexerOptions{
+	idx_opts := &wof_indexer.IndexerOptions{
 		DB:             db,
 		Tables:         to_index,
 		LoadRecordFunc: record_func,
 	}
 
-	idx, err := sql_index.NewSQLiteIndexer(idx_opts)
+	idx, err := wof_indexer.NewIndexer(idx_opts)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = idx.IndexPaths(ctx, iterator_uri, paths)
+	err = idx.IndexURIs(ctx, iterator_uri, paths...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := db.Conn()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
+	return db, nil
 }
 
 func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 	"github.com/whosonfirst/go-whosonfirst-feature/properties"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader/v2"
 )
 
 func treeLabel(ctx context.Context, r reader.Reader, el Element) string {

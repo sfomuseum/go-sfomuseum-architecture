@@ -11,10 +11,10 @@ import (
 
 	sfom_writer "github.com/sfomuseum/go-sfomuseum-writer/v3"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-reader"
-	"github.com/whosonfirst/go-whosonfirst-export/v2"
+	"github.com/whosonfirst/go-reader/v2"
+	"github.com/whosonfirst/go-whosonfirst-export/v3"
 	"github.com/whosonfirst/go-whosonfirst-id"
-	wof_reader "github.com/whosonfirst/go-whosonfirst-reader"
+	wof_reader "github.com/whosonfirst/go-whosonfirst-reader/v2"
 	"github.com/whosonfirst/go-writer/v3"
 )
 

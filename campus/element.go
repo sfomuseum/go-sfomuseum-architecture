@@ -7,7 +7,7 @@ import (
 	_ "log/slog"
 	"strings"
 
-	"github.com/whosonfirst/go-reader"
+	"github.com/whosonfirst/go-reader/v2"
 )
 
 type Element interface {
