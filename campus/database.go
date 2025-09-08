@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"net/url"
 
 	_ "github.com/mattn/go-sqlite3"
 
+	sfom_sql "github.com/sfomuseum/go-database/sql"
+	wof_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-whosonfirst-database-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
 	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )
@@ -19,19 +21,18 @@ var WARN_IS_CURRENT = true
 
 func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri string, paths ...string) (*sql.DB, error) {
 
-	db, err := database.Open("sqlite3", dsn)
+	db_query := url.Values{}
+	db_query.Set("dsn", dsn)
 
-	if err != nil {
-		return nil, err
-	}
+	db_uri := url.URL{}
+	db_uri.Scheme = "sql"
+	db_uri.Host = "sqlite3"
 
-	err = db.LiveHardDieFast()
+	db_uri.RawQuery = db_query.Encode()
 
-	if err != nil {
-		return nil, err
-	}
+	db, err := sfom_sql.OpenWithURI(ctx, db_uri.String())
 
-	to_index := make([]sqlite.Table, 0)
+	to_index := make([]wof_sql.Table, 0)
 
 	geojson_opts, err := tables.DefaultGeoJSONTableOptions()
 
@@ -71,17 +72,16 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, spr_table)
 
-	record_opts := &index.SQLiteFeaturesLoadRecordFuncOptions{
+	record_opts := &indexer.LoadRecordFuncOptions{
 		StrictAltFiles: false,
 	}
 
-	// FIX ME
-	// record_func := index.SQLiteFeaturesLoadRecordFunc(record_opts)
+	record_func := indexer.LoadRecordFunc(record_opts)
 
-	idx_opts := &indexer.IndexOptions{
-		DB:     db,
-		Tables: to_index,
-		// LoadRecordFunc: record_func,
+	idx_opts := &indexer.IndexerOptions{
+		DB:             db,
+		Tables:         to_index,
+		LoadRecordFunc: record_func,
 	}
 
 	idx, err := indexer.NewIndexer(idx_opts)
@@ -90,19 +90,13 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 		return nil, err
 	}
 
-	err = idx.IndexURIs(ctx, iterator_uri, paths)
+	err = idx.IndexURIs(ctx, iterator_uri, paths...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := db.Conn()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return conn, nil
+	return db, nil
 }
 
 func findChildIDs(ctx context.Context, db *sql.DB, parent_id int64, placetype string) ([]int64, error) {
