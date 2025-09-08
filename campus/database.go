@@ -10,11 +10,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	sfom_sql "github.com/sfomuseum/go-database/sql"
-	wof_sql "github.com/sfomuseum/go-database/sql"
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
-	"github.com/whosonfirst/go-whosonfirst-database/sql/tables"
+	wof_indexer "github.com/whosonfirst/go-whosonfirst-database/sql/indexer"
+	wof_tables "github.com/whosonfirst/go-whosonfirst-database/sql/tables"
 )
 
 var WARN_IS_CURRENT = true
@@ -32,9 +31,9 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	db, err := sfom_sql.OpenWithURI(ctx, db_uri.String())
 
-	to_index := make([]wof_sql.Table, 0)
+	to_index := make([]sfom_sql.Table, 0)
 
-	geojson_opts, err := tables.DefaultGeoJSONTableOptions()
+	geojson_opts, err := wof_tables.DefaultGeoJSONTableOptions()
 
 	if err != nil {
 		return nil, err
@@ -42,7 +41,7 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	geojson_opts.IndexAltFiles = false
 
-	geojson_table, err := tables.NewGeoJSONTableWithDatabaseAndOptions(ctx, db, geojson_opts)
+	geojson_table, err := wof_tables.NewGeoJSONTableWithDatabaseAndOptions(ctx, db, geojson_opts)
 
 	if err != nil {
 		return nil, err
@@ -50,7 +49,7 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, geojson_table)
 
-	supersedes_table, err := tables.NewSupersedesTableWithDatabase(ctx, db)
+	supersedes_table, err := wof_tables.NewSupersedesTableWithDatabase(ctx, db)
 
 	if err != nil {
 		return nil, err
@@ -58,13 +57,13 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, supersedes_table)
 
-	spr_opts, err := tables.DefaultSPRTableOptions()
+	spr_opts, err := wof_tables.DefaultSPRTableOptions()
 
 	if err != nil {
 		return nil, err
 	}
 
-	spr_table, err := tables.NewSPRTableWithDatabaseAndOptions(ctx, db, spr_opts)
+	spr_table, err := wof_tables.NewSPRTableWithDatabaseAndOptions(ctx, db, spr_opts)
 
 	if err != nil {
 		return nil, err
@@ -72,19 +71,19 @@ func NewDatabaseWithIterator(ctx context.Context, dsn string, iterator_uri strin
 
 	to_index = append(to_index, spr_table)
 
-	record_opts := &indexer.LoadRecordFuncOptions{
+	record_opts := &wof_indexer.LoadRecordFuncOptions{
 		StrictAltFiles: false,
 	}
 
-	record_func := indexer.LoadRecordFunc(record_opts)
+	record_func := wof_indexer.LoadRecordFunc(record_opts)
 
-	idx_opts := &indexer.IndexerOptions{
+	idx_opts := &wof_indexer.IndexerOptions{
 		DB:             db,
 		Tables:         to_index,
 		LoadRecordFunc: record_func,
 	}
 
-	idx, err := indexer.NewIndexer(idx_opts)
+	idx, err := wof_indexer.NewIndexer(idx_opts)
 
 	if err != nil {
 		return nil, err
